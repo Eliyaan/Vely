@@ -1,4 +1,8 @@
-struct @Match {
+module blocks
+
+import gg
+
+pub struct Match {
 	id		int
 	variant	Variants
 	mut:

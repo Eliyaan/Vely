@@ -1,4 +1,8 @@
-struct Input {
+module blocks
+
+import gg
+
+pub struct Input {
 	id		int
 	variant	Variants
 	mut:

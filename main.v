@@ -1,3 +1,6 @@
+module main
+
+import blocks
 import gg
 
 const win_width    = 601
@@ -10,7 +13,7 @@ struct App {
 mut:
     gg    &gg.Context = unsafe { nil }
     square_size int = 10
-	list_blocks	[]Blocks
+	list_blocks	[]blocks.Blocks
 }
 
 

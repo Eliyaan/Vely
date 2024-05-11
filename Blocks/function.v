@@ -1,4 +1,8 @@
-struct Function {
+module blocks
+
+import gg
+
+pub struct Function {
 	id		int
 	variant	Variants
 	mut:

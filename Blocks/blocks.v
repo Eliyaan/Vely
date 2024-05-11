@@ -1,5 +1,9 @@
-interface Blocks {
-	show(app APP)
+module blocks
+
+import gg
+
+pub interface Blocks {
+	show()
 	id	int
 	variant	Variants
 
@@ -8,7 +12,7 @@ interface Blocks {
 		y		int
 }
 
-enum Variants {
+pub enum Variants {
 	function
 	condition
 	@match

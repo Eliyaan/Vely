@@ -1,4 +1,8 @@
-struct Condition {
+module blocks
+
+import gg
+
+pub struct Condition {
 	id		int
 	variant	Variants
 	mut:
