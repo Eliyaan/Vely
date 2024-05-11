@@ -1,9 +1,9 @@
 interface Blocks {
 	show()
 	id	int
+	variant	Variants
 
 	mut :
-		variant	Variants
 		x		int
 		y		int
 }
