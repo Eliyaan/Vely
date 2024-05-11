@@ -12,4 +12,6 @@ enum Variants {
 	condition
 	correspond
 	tant_que
+	si
+	sinon_si
 }
