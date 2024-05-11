@@ -1,5 +1,5 @@
 interface Blocks {
-	show()
+	show(app APP)
 	id	int
 	variant	Variants
 
