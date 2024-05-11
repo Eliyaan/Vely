@@ -1,8 +1,12 @@
-enum ParamTypes {
-	
+module blocks
+
+import gg
+
+pub enum ParamTypes {
+	int
 }
 
-struct Params {
+pub struct Params {
 	text		string
 	number		int
 	contains	ParamTypes
