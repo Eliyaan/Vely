@@ -1,5 +1,5 @@
-interface Blocs {
-	afficher()
+interface Blocks {
+	show()
 
 	mut :
 		variant	Variants
@@ -8,10 +8,10 @@ interface Blocs {
 }
 
 enum Variants {
-	fonction
+	function
 	condition
-	correspond
-	tant_que
+	@match
+	loop
 	input
 	input_output
 }
