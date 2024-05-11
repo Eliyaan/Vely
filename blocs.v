@@ -12,6 +12,6 @@ enum Variants {
 	condition
 	correspond
 	tant_que
-	imput
-	imput_output
+	input
+	input_output
 }
