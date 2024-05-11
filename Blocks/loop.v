@@ -16,3 +16,7 @@ pub struct Loop {
 		condition	int
 		params		[]Params
 }
+
+pub fn (loop Loop) show() {
+	
+}

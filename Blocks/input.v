@@ -12,3 +12,7 @@ pub struct Input {
 		input	int
 		params	[]Params
 }
+
+pub fn (in Input) show() {
+	
+}

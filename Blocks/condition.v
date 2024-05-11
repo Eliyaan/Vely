@@ -15,3 +15,7 @@ pub struct Condition {
 		conditions	[]int
 		sizes		[]int
 }
+
+pub fn (con Condition) show() {
+	
+}

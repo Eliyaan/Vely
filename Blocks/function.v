@@ -15,3 +15,7 @@ pub struct Function {
 		args_types		[]ParamTypes
 		return_types	[]ParamTypes
 }
+
+pub fn (func Function) show() {
+	
+}

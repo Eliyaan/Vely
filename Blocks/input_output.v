@@ -13,3 +13,7 @@ pub struct Input_output {
 		output	int
 		params	[]Params
 }
+
+pub fn (in_out Input_output) show() {
+	
+}

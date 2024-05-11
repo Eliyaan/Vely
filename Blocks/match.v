@@ -15,3 +15,7 @@ pub struct Match {
 		conditions	[]int
 		size		[]int
 }
+
+pub fn (ma Match) show() {
+	
+}
