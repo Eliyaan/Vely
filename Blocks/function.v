@@ -2,6 +2,9 @@ struct Function {
 	id		int
 	variant	Variants
 	mut:
+		x		int
+		y		int
+
 		size	int
 		inner	int
 		args	[]Params
