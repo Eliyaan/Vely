@@ -16,7 +16,7 @@ pub:
 }
 
 pub fn (input Input) show(ctx  gg.Context) {
-	ctx.draw_rect_filled(input.x, input.y, 20, blocks_height, gx.red)
-	ctx.draw_rect_filled(input.x + 20, input.y + 10, 20, blocks_height - 10, gx.red)
-	ctx.draw_rect_filled(input.x + 40, input.y, 40, blocks_height, gx.red)
+	ctx.draw_rect_filled(input.x, input.y, start_block_width, blocks_height, gx.red)
+	ctx.draw_rect_filled(input.x + start_block_width, input.y + attach_decal, mid_block_width, blocks_height - attach_decal, gx.red)
+	ctx.draw_rect_filled(input.x + (start_block_width + mid_block_width), input.y, end_block_width, blocks_height, gx.red)
 }
