@@ -1,11 +1,12 @@
 module blocks
 
 import gg
+import gx
 
 pub struct Match {
-	id		int
-	variant	Variants
-	mut:
+pub:	id		int
+		variant	Variants
+	pub mut:
 		x		int
 		y		int
 		

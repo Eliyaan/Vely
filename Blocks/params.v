@@ -1,7 +1,5 @@
 module blocks
 
-import gg
-
 pub enum ParamTypes {
 	int
 }
