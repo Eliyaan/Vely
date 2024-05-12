@@ -1,11 +1,13 @@
 module blocks
 
 import gg
+import gx
 
 pub struct Loop {
+pub:	
 	id		int
 	variant	Variants
-	mut:
+	pub mut:
 		x		int
 		y		int
 		

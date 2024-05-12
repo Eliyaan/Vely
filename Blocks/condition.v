@@ -1,11 +1,13 @@
 module blocks
 
 import gg
+import gx
 
 pub struct Condition {
+pub:	
 	id		int
 	variant	Variants
-	mut:
+	pub mut:
 		x		int
 		y		int
 

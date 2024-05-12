@@ -4,7 +4,8 @@ import gg
 import gx 
 
 pub struct Input_output {
-pub:	id		int
+pub:	
+	id		int
 	variant	Variants
 	pub mut:
 		x		int
