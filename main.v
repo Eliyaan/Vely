@@ -11,7 +11,7 @@ const bg_color     = gg.Color{}
 
 struct App {
 mut:
-    gg    &gg.Context = unsafe { nil }
+    ctx    &gg.Context = unsafe { nil }
     square_size int = 10
 	list_blocks	[]blocks.Blocks
 }
@@ -19,7 +19,7 @@ mut:
 
 fn main() {
     mut app := &App{}
-    app.gg = gg.new_context(
+    app.ctx = gg.new_context(
         width: win_width
         height: win_height
         create_window: true
@@ -32,21 +32,25 @@ fn main() {
     )
 
     //lancement du programme/de la fenêtre
-    app.gg.run()
+    app.list_blocks << blocks.Input{1, blocks.Variants.input, 100, 100, -1, []}
+    app.list_blocks << blocks.Input_output{1, blocks.Variants.input, 200, 100, -1, -1, []}
+    app.ctx.run()
 }
 
 fn on_frame(mut app App) {
     //Draw
-    app.gg.begin()
-    app.gg.draw_square_filled(0, 0, app.square_size, gg.Color{255, 0, 0, 255}) // couleurs en rgba
-    app.gg.end()
+    app.ctx.begin()
+    for block in app.list_blocks{
+        block.show(app.ctx)
+    }
+    app.ctx.end()
 }
 
 fn on_event(e &gg.Event, mut app App){
     match e.typ {
         .key_down {
             match e.key_code {
-                .escape {app.gg.quit()}
+                .escape {app.ctx.quit()}
                 else {}
             }
         }

@@ -1,9 +1,10 @@
 module blocks
 
 import gg
+const blocks_height := 40
 
 pub interface Blocks {
-	show()
+	show(ctx  gg.Context)
 	id	int
 	variant	Variants
 
