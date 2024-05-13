@@ -25,7 +25,7 @@ pub fn (ma Match) show(ctx  gg.Context) {
 	ctx.draw_rect_filled(x, ma.y, start_block_width, blocks_height, gx.red)
 	x += start_block_width
 	// Attach
-	ctx.draw_rect_filled(x, ma.y, mid_block_width, (blocks_height + attach_decal), gx.red)
+	ctx.draw_rect_filled(x, (ma.y + attach_decal), mid_block_width, blocks_height, gx.red)
 	x += mid_block_width
 	// END
 	ctx.draw_rect_filled(x, ma.y, end_block_width, blocks_height, gx.red)
