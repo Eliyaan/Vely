@@ -36,6 +36,7 @@ fn main() {
     app.list_blocks << blocks.Input_output{2, blocks.Variants.input, 250, 100, -1, -1, []}
     app.list_blocks << blocks.Condition{3, blocks.Variants.condition, 100, 200, -1, -1, 0, 0, 0, 0, 0}
     app.list_blocks << blocks.Function{4, blocks.Variants.function, 250, 200, 0, 0, [], [], []}
+    app.list_blocks << blocks.Loop{4, blocks.Variants.loop, 400, 100, 0, -1, -1, -1, 0, []}
     app.ctx.run()
 }
 
