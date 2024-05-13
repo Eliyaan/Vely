@@ -29,14 +29,17 @@ pub fn (con Condition) show(ctx  gg.Context) {
 	// Start
 	ctx.draw_rect_filled(x, con.y, start_block_width, blocks_height, gx.red)
 	ctx.draw_rect_filled(x, con.y + if_expend_height, start_block_width, blocks_height, gx.red)
-	// End for end of the loop
-	ctx.draw_rect_filled(x, (con.y + else_expend_height), 2*end_block_width, blocks_height, gx.red)
+	ctx.draw_rect_filled(x, con.y + else_expend_height, start_block_width, blocks_height, gx.red)
+
 	x += start_block_width
 	// Attach
 	ctx.draw_rect_filled(x, (con.y + attach_decal), mid_block_width, blocks_height, gx.red)
 	ctx.draw_rect_filled(x, (con.y + if_expend_height), mid_block_width, (blocks_height + attach_decal), gx.red)
+	ctx.draw_rect_filled(x, (con.y + else_expend_height), mid_block_width, (blocks_height + attach_decal), gx.red)
+
 	x += mid_block_width
 	// END
 	ctx.draw_rect_filled(x, con.y, end_block_width, blocks_height, gx.red)
 	ctx.draw_rect_filled(x, (con.y + if_expend_height), end_block_width, blocks_height, gx.red)
+	ctx.draw_rect_filled(x, (con.y + else_expend_height), end_block_width, blocks_height, gx.red)
 }
