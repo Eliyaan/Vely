@@ -2,6 +2,7 @@ module blocks
 
 import gg
 const attach_decal		:= 10
+const expend_block_width	:= 20
 const start_block_width	:= 20
 const mid_block_width	:= 20
 const end_block_width	:= 40
