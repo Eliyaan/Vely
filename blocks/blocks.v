@@ -1,7 +1,13 @@
 module blocks
 
 import gg
-const blocks_height := 40
+
+const attach_decal		:= 10
+const expend_block_width	:= 20
+const start_block_width	:= 20
+const mid_block_width	:= 20
+const end_block_width	:= 40
+const blocks_height		:= 40
 
 pub interface Blocks {
 	show(ctx  gg.Context)
