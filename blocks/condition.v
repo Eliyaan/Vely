@@ -10,7 +10,6 @@ pub:
 	pub mut:
 		x		int
 		y		int
-		
 		input	int
 		output	int
 		inner	[]int
