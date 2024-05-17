@@ -20,13 +20,13 @@ pub:
 
 pub fn (con Condition) show(ctx  gg.Context) {
 	mut x := con.x
-	mut expend_height	:= (1 + con.size[0])*blocks_height  + 2*attach_decal
+	mut expend_height	:= con.size[0] + blocks_height  + 2*attach_decal
 	x += expend_block_width
-	// Start
-	ctx.draw_rect_filled(x, con.y, start_block_width, blocks_height, gx.red)
-	x += start_block_width
 	// Attach
-	ctx.draw_rect_filled(x, (con.y + attach_decal), mid_block_width, blocks_height, gx.red)
+	ctx.draw_rect_filled(x, (con.y  + attach_decal), mid_block_width, (blocks_height - attach_decal), gx.red)
+	x += mid_block_width
+	// Attach
+	ctx.draw_rect_filled(x, con.y, mid_block_width, (blocks_height + attach_decal), gx.red)
 	x += mid_block_width
 	// END
 	ctx.draw_rect_filled(x, con.y, end_block_width, blocks_height, gx.red)
@@ -34,7 +34,7 @@ pub fn (con Condition) show(ctx  gg.Context) {
 	for size in con.size[1..] {
 		x = con.x
 		y := con.y + expend_height
-		expend_height	+= (1 + size)*blocks_height  + 2*attach_decal
+		expend_height	+= size + blocks_height  + 2*attach_decal
 		x += expend_block_width
 		// Start
 		ctx.draw_rect_filled(x, y, start_block_width, blocks_height, gx.red)
@@ -51,11 +51,11 @@ pub fn (con Condition) show(ctx  gg.Context) {
 	x += expend_block_width
 	y := con.y + expend_height
 	// Start
-	ctx.draw_rect_filled(x, y, start_block_width, blocks_height, gx.red)
-	x += start_block_width
 	// Attach
 	ctx.draw_rect_filled(x, y, mid_block_width, (blocks_height + attach_decal), gx.red)
 	x += mid_block_width
+	ctx.draw_rect_filled(x, y, start_block_width, blocks_height, gx.red)
+	x += start_block_width
 	// END
 	ctx.draw_rect_filled(x, y, end_block_width, blocks_height, gx.red)
 }

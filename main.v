@@ -34,10 +34,10 @@ fn main() {
     //lancement du programme/de la fenêtre
     app.list_blocks << blocks.Input{1, blocks.Variants.input, 100, 100, -1, []}
     app.list_blocks << blocks.Input_output{2, blocks.Variants.input, 250, 100, -1, -1, []}
-    app.list_blocks << blocks.Condition{6, blocks.Variants.condition, 100, 200, -1, -1, [], [], [1, 1]}
     app.list_blocks << blocks.Function{4, blocks.Variants.function, 250, 200, 0, 0, [], [], []}
     app.list_blocks << blocks.Loop{5, blocks.Variants.loop, 400, 100, 0, -1, -1, -1, 0, []}
-    app.list_blocks << blocks.Condition{6, blocks.Variants.@match, 400, 250, -1, -1, [], [], [0]}
+    app.list_blocks << blocks.Condition{6, blocks.Variants.condition, 100, 200, -1, -1, [], [], [0, 0]}
+    app.list_blocks << blocks.Condition{6, blocks.Variants.@match, 400, 250, -1, -1, [], [], [0, 0, 0]}
     app.ctx.run()
 }
 
