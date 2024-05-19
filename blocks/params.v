@@ -5,7 +5,7 @@ pub enum ParamTypes {
 }
 
 pub struct Params {
-	text		string
-	number		int
-	contains	ParamTypes
+	text     string
+	number   int
+	contains ParamTypes
 }

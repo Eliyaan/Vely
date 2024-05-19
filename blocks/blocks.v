@@ -2,21 +2,21 @@ module blocks
 
 import gg
 
-const attach_decal		:= 10
-const expend_block_width	:= 20
-const start_block_width	:= 20
-const mid_block_width	:= 20
-const end_block_width	:= 40
-const blocks_height		:= 40
+const attach_decal = 5
+const expand_block_w = 20
+const start_block_w = 20
+const mid_block_w = 20
+const end_block_w = 40
+const blocks_h = 40
 
 pub interface Blocks {
-	show(ctx  gg.Context)
-	id	int
-	variant	Variants
-
-	mut :
-		x		int
-		y		int
+	id      int
+	variant Variants
+	show(ctx gg.Context)
+	is_clicked(x int, y int) bool
+mut:
+	x int
+	y int
 }
 
 pub enum Variants {
