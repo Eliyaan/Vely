@@ -19,30 +19,45 @@ pub mut:
 }
 
 pub fn (func Function) show(ctx gg.Context) {
-	expand_h := (1 + func.size) * blocks_h + 2 * attach_decal
-	ctx.draw_rect_filled(func.x, func.y, expand_block_w, expand_h + blocks_h, gx.green)
+	text_to_render := match func.variant {
+		.function {
+			"function `name` `name type`(+) returns:`type`(+)"
+		}
+		else {panic("${func.variant} not handled")}
+	}
+	size := int(f32(text_to_render.len)*8.8) - (attach_w*4 + end_block_w)
+	expand_h := (1 + func.size) * blocks_h + 2 * attach_decal_y
+	ctx.draw_rect_filled(func.x, func.y, attach_w, expand_h + blocks_h, gx.pink)
 	// Start
-	ctx.draw_rect_filled(func.x + expand_block_w, func.y, start_block_w, blocks_h, gx.red)
+	ctx.draw_rect_filled(func.x + attach_w, func.y, attach_w, blocks_h, gx.pink)
 	// End for end of the loop
-	ctx.draw_rect_filled(func.x + expand_block_w, (func.y + expand_h), 2 * end_block_w,
+	ctx.draw_rect_filled(func.x + attach_w, (func.y + expand_h), end_block_w + attach_w*2 + size,
 		blocks_h, gx.pink)
 	// Attach
-	ctx.draw_rect_filled(func.x + expand_block_w + start_block_w, func.y, mid_block_w,
-		(blocks_h + attach_decal), gx.red)
+	ctx.draw_rect_filled(func.x + attach_w + attach_w, func.y, attach_w,
+		(blocks_h + attach_decal_y), gx.pink)
 	// END
-	ctx.draw_rect_filled(func.x + expand_block_w + start_block_w + mid_block_w, func.y,
-		end_block_w, blocks_h, gx.blue)
+	ctx.draw_rect_filled(func.x + attach_w + attach_w + attach_w, func.y,
+		end_block_w + size, blocks_h, gx.pink)
+	ctx.draw_text(func.x + attach_w/2, func.y + blocks_h/2, text_to_render, text_cfg)
 }
 
 pub fn (func Function) is_clicked(x int, y int) bool {
-	expand_h := (1 + func.size) * blocks_h + 2 * attach_decal
-	if x < func.x + expand_block_w + start_block_w + mid_block_w + end_block_w
+	text_to_render := match func.variant {
+		.function {
+			"function `name` `name type`(+) returns:`type`(+)"
+		}
+		else {panic("${func.variant} not handled")}
+	}
+	size := int(f32(text_to_render.len)*8.8) - (attach_w*4 + end_block_w)
+	expand_h := (1 + func.size) * blocks_h + 2 * attach_decal_y
+	if x < func.x + attach_w + attach_w + attach_w + end_block_w + size
 		&& y < func.y + blocks_h {
 		return true
-	} else if x < func.x + expand_block_w && y < func.y + expand_h + blocks_h {
+	} else if x < func.x + attach_w && y < func.y + expand_h + blocks_h {
 		return true
-	} else if x > func.x + expand_block_w && y > func.y + expand_h
-		&& x < func.x + expand_block_w + 2 * end_block_w && y < func.y + expand_h + blocks_h {
+	} else if x > func.x + attach_w && y > func.y + expand_h
+		&& x < func.x + attach_w * 2 + end_block_w + size && y < func.y + expand_h + blocks_h {
 		return true
 	}
 	return false
