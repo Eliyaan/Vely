@@ -9,12 +9,14 @@ const bg_color = gg.Color{100, 100, 100, 255}
 
 struct App {
 mut:
-	ctx         &gg.Context = unsafe { nil }
-	square_size int = 10
-	blocks []blocks.Blocks
-    clicked_block int = -1
-    block_click_offset_x int 
-    block_click_offset_y int 
+	ctx                  &gg.Context = unsafe { nil }
+	square_size          int = 10
+	blocks               []blocks.Blocks
+	max_id               int
+	menu_mode            MenuMode
+	clicked_block        int = -1
+	block_click_offset_x int
+	block_click_offset_y int
 }
 
 enum Vari { // Variants
@@ -34,7 +36,6 @@ enum Vari { // Variants
 	declare
 }
 
-
 fn main() {
 	mut app := &App{}
 	app.ctx = gg.new_context(
@@ -47,50 +48,33 @@ fn main() {
 		frame_fn: on_frame
 		event_fn: on_event
 		sample_count: 2
-        font_path: blocks.font_path
+		font_path: blocks.font_path
 	)
 
-	// lancement du programme/de la fenêtre
-	app.blocks << blocks.Input{1, int(Vari.panic), 100, 100, [], -1, []}
-	app.blocks << blocks.Input_output{2, int(Vari.declare), 250, 100, [], -1, -1, []}
-	app.blocks << blocks.Function{4, int(Vari.function), 250, 200, [], 0, 0, [], [], []}
-	app.blocks << blocks.Loop{5, int(Vari.for_range), 400, 100, [], 0, -1, -1, -1, 0, []}
-	app.blocks << blocks.Condition{6, int(Vari.condition), 200, 400, [], -1, -1, [], [], [
-		0,
-	]}
-	app.blocks << blocks.Condition{7, int(Vari.condition), 100, 200, [], -1, -1, [], [], [
-		0,
-		0,
-	]}
-	app.blocks << blocks.Condition{8, int(Vari.@match), 400, 250, [], -1, -1, [], [], [
-		0,
-		0,
-		0,
-	]}
 	app.ctx.run()
 }
 
 fn (app App) find_index(id int) int {
-    for i, elem in app.blocks {
-        if elem.id == id {
-            return i
-        }
-    }
-    panic("Did not find id")
+	for i, elem in app.blocks {
+		if elem.id == id {
+			return i
+		}
+	}
+	panic('Did not find id')
 }
 
 fn on_frame(mut app App) {
 	// Draw
 	app.ctx.begin()
 	for mut block in app.blocks {
-        if block.id != app.clicked_block {
-          	show_block(app.ctx, mut block) or {panic(err)}
-        }
+		if block.id != app.clicked_block {
+			block.show(app.ctx)
+		}
 	}
-    if app.clicked_block != -1 {
-        app.blocks[app.find_index(app.clicked_block)].show(app.ctx)
-    }
-	show_blocks_menu(app.ctx)
+	if app.clicked_block != -1 {
+		app.blocks[app.find_index(app.clicked_block)].show(app.ctx)
+	}
+	app.show_blocks_menu()
 	app.ctx.end()
 }
 
@@ -103,24 +87,28 @@ fn on_event(e &gg.Event, mut app App) {
 			}
 		}
 		.mouse_down {
-			for elem in app.blocks {
-				if e.mouse_x > elem.x && e.mouse_y > elem.y {
-					if elem.is_clicked(int(e.mouse_x), int(e.mouse_y)) {
-						app.clicked_block = elem.id
-                        app.block_click_offset_x = int(e.mouse_x) - elem.x
-                        app.block_click_offset_y = int(e.mouse_y) - elem.y
+			x := int(e.mouse_x)
+			y := int(e.mouse_y)
+			if app.check_clicks_menu(x, y) or { panic(err) } {
+			} else {
+				for elem in app.blocks {
+					if x > elem.x && y > elem.y {
+						if elem.is_clicked(x, y) {
+							app.clicked_block = elem.id
+							app.set_block_offset(x, y, elem)
+						}
 					}
 				}
 			}
 		}
-        .mouse_up {
-            app.clicked_block = -1
-        }
+		.mouse_up {
+			app.clicked_block = -1
+		}
 		else {}
 	}
-    if app.clicked_block != -1 {
-        id := app.find_index(app.clicked_block)
-        app.blocks[id].x = int(e.mouse_x) - app.block_click_offset_x
-        app.blocks[id].y = int(e.mouse_y) - app.block_click_offset_y
-    }
+	if app.clicked_block != -1 {
+		id := app.find_index(app.clicked_block)
+		app.blocks[id].x = int(e.mouse_x) - app.block_click_offset_x
+		app.blocks[id].y = int(e.mouse_y) - app.block_click_offset_y
+	}
 }
