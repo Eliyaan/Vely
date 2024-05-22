@@ -13,27 +13,12 @@ pub const font_path := os.resource_abs_path('0xProtoNerdFontMono-Regular.ttf')
 
 pub interface Blocks {
 	id      int
-	variant Variants
+	variant int
 	show(ctx gg.Context)
 	is_clicked(x int, y int) bool
 mut:
 	x int
 	y int
+	text []string
 }
 
-pub enum Variants {
-	// Functions
-	function
-	// Conditions
-	condition
-	@match
-	// Loops
-	for_range
-	for_c
-	for_bool
-	// Inputs (no return)
-	@return
-	panic
-	// Input outputs
-	declare
-}

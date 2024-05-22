@@ -6,11 +6,11 @@ import gx
 pub struct Loop {
 pub:
 	id      int
-	variant Variants
+	variant int
 pub mut:
 	x int
 	y int
-
+	text []string
 	size      int
 	input     int
 	output    int
@@ -20,21 +20,7 @@ pub mut:
 }
 
 pub fn (loop Loop) show(ctx gg.Context) {
-	text_to_draw := match loop.variant {
-		.for_range {
-			"for each `i` between [`0` and `5`)"
-		}
-		.for_bool {
-			"while `bool` is true"
-		}
-		.for_c {
-			"repeat: start `i` equals `0` while `condition` and doing `action`"
-		}
-		else {
-			panic("${loop.variant} not handled")
-		}
-	}
-	size := int(f32(text_to_draw.len) * 8.5) - (end_block_w + attach_w + attach_w + attach_w)
+	size := int(f32(loop.text[0].len) * 8.5) - (end_block_w + attach_w + attach_w + attach_w)
 
 	expand_h := (1 + loop.size) * blocks_h + 2 * attach_decal_y
 	ctx.draw_rect_filled(loop.x, loop.y, attach_w, expand_h + blocks_h, gx.pink)
@@ -58,25 +44,11 @@ pub fn (loop Loop) show(ctx gg.Context) {
 	ctx.draw_rect_filled(loop.x + attach_w + attach_w + attach_w, y, end_block_w + size,
 		blocks_h, gx.pink)
 
-	ctx.draw_text(loop.x + attach_w/2, loop.y + blocks_h/2, text_to_draw, text_cfg)
+	ctx.draw_text(loop.x + attach_w/2, loop.y + blocks_h/2, loop.text[0], text_cfg)
 }
 
 pub fn (loop Loop) is_clicked(x int, y int) bool {
-	text_to_draw := match loop.variant {
-		.for_range {
-			"for each `i` between [`0` and `5`)"
-		}
-		.for_bool {
-			"while `bool` is true"
-		}
-		.for_c {
-			"repeat: start `i` equals `0` while `condition` and doing `action`"
-		}
-		else {
-			panic("${loop.variant} not handled")
-		}
-	}
-	size := int(f32(text_to_draw.len) * 8.5) - (end_block_w + attach_w + attach_w + attach_w)
+	size := int(f32(loop.text[0].len) * 8.5) - (end_block_w + attach_w + attach_w + attach_w)
 	expand_h := (1 + loop.size) * blocks_h + 2 * attach_decal_y
 	if x < loop.x + attach_w + attach_w + attach_w + end_block_w + size
 		&& y < loop.y + blocks_h {

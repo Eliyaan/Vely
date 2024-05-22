@@ -3,8 +3,8 @@ module main
 import blocks
 import gg
 
-const win_width = 801
-const win_height = 701
+const win_width = 1300
+const win_height = 700
 const bg_color = gg.Color{100, 100, 100, 255}
 
 struct App {
@@ -16,6 +16,24 @@ mut:
     block_click_offset_x int 
     block_click_offset_y int 
 }
+
+enum Vari { // Variants
+	// Functions
+	function
+	// Conditions
+	condition
+	@match
+	// Loops
+	for_range
+	for_c
+	for_bool
+	// Inputs (no return)
+	@return
+	panic
+	// Input outputs
+	declare
+}
+
 
 fn main() {
 	mut app := &App{}
@@ -33,18 +51,18 @@ fn main() {
 	)
 
 	// lancement du programme/de la fenêtre
-	app.blocks << blocks.Input{1, blocks.Variants.panic, 100, 100, -1, []}
-	app.blocks << blocks.Input_output{2, blocks.Variants.declare, 250, 100, -1, -1, []}
-	app.blocks << blocks.Function{4, blocks.Variants.function, 250, 200, 0, 0, [], [], []}
-	app.blocks << blocks.Loop{5, blocks.Variants.for_range, 400, 100, 0, -1, -1, -1, 0, []}
-	app.blocks << blocks.Condition{6, blocks.Variants.condition, 200, 400, -1, -1, [], [], [
+	app.blocks << blocks.Input{1, int(Vari.panic), 100, 100, [], -1, []}
+	app.blocks << blocks.Input_output{2, int(Vari.declare), 250, 100, [], -1, -1, []}
+	app.blocks << blocks.Function{4, int(Vari.function), 250, 200, [], 0, 0, [], [], []}
+	app.blocks << blocks.Loop{5, int(Vari.for_range), 400, 100, [], 0, -1, -1, -1, 0, []}
+	app.blocks << blocks.Condition{6, int(Vari.condition), 200, 400, [], -1, -1, [], [], [
 		0,
 	]}
-	app.blocks << blocks.Condition{7, blocks.Variants.condition, 100, 200, -1, -1, [], [], [
+	app.blocks << blocks.Condition{7, int(Vari.condition), 100, 200, [], -1, -1, [], [], [
 		0,
 		0,
 	]}
-	app.blocks << blocks.Condition{8, blocks.Variants.@match, 400, 250, -1, -1, [], [], [
+	app.blocks << blocks.Condition{8, int(Vari.@match), 400, 250, [], -1, -1, [], [], [
 		0,
 		0,
 		0,
@@ -64,14 +82,15 @@ fn (app App) find_index(id int) int {
 fn on_frame(mut app App) {
 	// Draw
 	app.ctx.begin()
-	for block in app.blocks {
+	for mut block in app.blocks {
         if block.id != app.clicked_block {
-            block.show(app.ctx)
+          	show_block(app.ctx, mut block) or {panic(err)}
         }
 	}
     if app.clicked_block != -1 {
         app.blocks[app.find_index(app.clicked_block)].show(app.ctx)
     }
+	show_blocks_menu(app.ctx)
 	app.ctx.end()
 }
 
