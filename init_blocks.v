@@ -5,10 +5,10 @@ fn init_block(b blocks.Blocks) !blocks.Blocks {
 	match mut block {
 		blocks.Function {
 			block.text = ['fn `name` `name type`(+) returns`type`(+)']
+			block.attachs_rel_y = [blocks.blocks_h]
 		}
 		blocks.Condition {
-			mut a := []string{}
-			a << match Vari.from(block.variant)! {
+			block.text << match Vari.from(block.variant)! {
 				.condition {
 					'if `condi` is true'
 				}
@@ -19,17 +19,20 @@ fn init_block(b blocks.Blocks) !blocks.Blocks {
 					panic('${block.variant} not supported')
 				}
 			}
-			for nb in 0 .. block.size.len - 1 {
-				a << match Vari.from(block.variant)! {
+			block.attachs_rel_y = []int{len: block.size_in.len, init: blocks.blocks_h +
+				(block.size_in[index] + blocks.blocks_h + 2 * blocks.attach_decal_y) * (index + 1)}
+			block.attachs_rel_y.insert(0, blocks.blocks_h)
+			for nb in 0 .. block.size_in.len - 1 {
+				block.text << match Vari.from(block.variant)! {
 					.condition {
-						if nb == block.size.len - 2 {
+						if nb == block.size_in.len - 2 {
 							'else'
 						} else {
 							'else if'
 						}
 					}
 					.@match {
-						if nb == block.size.len - 2 {
+						if nb == block.size_in.len - 2 {
 							'else'
 						} else {
 							'`val`'
@@ -40,9 +43,10 @@ fn init_block(b blocks.Blocks) !blocks.Blocks {
 					}
 				}
 			}
-			block.text = a
 		}
 		blocks.Loop {
+			expand_h := block.size_in[0] + blocks.blocks_h + 2 * blocks.attach_decal_y
+			block.attachs_rel_y = [blocks.blocks_h, blocks.blocks_h + expand_h]
 			block.text = match Vari.from(block.variant)! {
 				.for_range {
 					['for each `i` in [`0` and `5`)']
@@ -72,6 +76,7 @@ fn init_block(b blocks.Blocks) !blocks.Blocks {
 					panic('${block.variant} not handled')
 				}
 			}
+			block.attachs_rel_y = []
 		}
 		blocks.InputOutput {
 			block.text = match Vari.from(block.variant)! {
@@ -82,6 +87,7 @@ fn init_block(b blocks.Blocks) !blocks.Blocks {
 					panic('${block.variant} not handled')
 				}
 			}
+			block.attachs_rel_y = [blocks.blocks_h]
 		}
 		else {
 			panic('${block} not handled')

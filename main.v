@@ -2,6 +2,7 @@ module main
 
 import blocks
 import gg
+import gx
 
 const win_width = 1300
 const win_height = 700
@@ -60,11 +61,12 @@ fn (app App) find_index(id int) int {
 			return i
 		}
 	}
-	panic('Did not find id')
+	panic('Did not find id ${id}')
 }
 
 fn on_frame(mut app App) {
 	// Draw
+	app.ctx.draw_rect_filled(0, 0, 500, 2000, gx.black)
 	app.ctx.begin()
 	for mut block in app.blocks {
 		if block.id != app.clicked_block {
@@ -92,23 +94,138 @@ fn on_event(e &gg.Event, mut app App) {
 			if app.check_clicks_menu(x, y) or { panic(err) } {
 			} else {
 				for elem in app.blocks {
-					if x > elem.x && y > elem.y {
-						if elem.is_clicked(x, y) {
-							app.clicked_block = elem.id
-							app.set_block_offset(x, y, elem)
-						}
+					if elem.is_clicked(x, y) {
+						app.clicked_block = elem.id
+						app.set_block_offset(x, y, elem)
 					}
 				}
 			}
 		}
 		.mouse_up {
-			app.clicked_block = -1
+			app.place_snap(int(e.mouse_x), int(e.mouse_y))
 		}
 		else {}
 	}
+	// TODO: Size adapt : propagate to the parent & unpropagate when detaching
 	if app.clicked_block != -1 {
 		id := app.find_index(app.clicked_block)
-		app.blocks[id].x = int(e.mouse_x) - app.block_click_offset_x
-		app.blocks[id].y = int(e.mouse_y) - app.block_click_offset_y
+		mut b := &app.blocks[id]
+		app.detach(mut b)
+		b.x = int(e.mouse_x) - app.block_click_offset_x
+		b.y = int(e.mouse_y) - app.block_click_offset_y
+		app.check_block_is_snapping_here(mut b)
+	}
+}
+
+fn (mut app App) place_snap(x int, y int) {
+	if app.clicked_block != -1 {
+		i := app.find_index(app.clicked_block)
+		app.blocks[i].x = x - app.block_click_offset_x
+		app.blocks[i].y = y - app.block_click_offset_y
+		if app.blocks[i] !is blocks.Function {
+			for mut other in app.blocks {
+				if other !is blocks.Input {
+					snap_attach_i := app.blocks[i].is_snapping(other)
+					if snap_attach_i != -1 { // snapped
+						app.snap_update_id_y(i, mut other, snap_attach_i)
+						app.propagate_size(i, mut other, snap_attach_i)
+						break
+					}
+				}
+			}
+		}
+	}
+	app.clicked_block = -1
+}
+
+fn (mut app App) propagate_size(block_i int, mut other blocks.Blocks, snap_attach_i int) {
+	if other.snap_i_is_body(snap_attach_i) {
+		mut size := 0
+		mut tmp_block_id := app.blocks[block_i].id
+		for tmp_block_id != -1 {
+			tmp_block := app.blocks[app.find_index(tmp_block_id)]
+			size += tmp_block.base_size
+			for elem in tmp_block.size_in {
+				size += elem
+			}
+			tmp_block_id = tmp_block.output
+		}
+		other.size_in[snap_attach_i] = size // TODO: need to propagate that to the parent body
+	}
+}
+
+fn (mut app App) snap_update_id_y(id int, mut other blocks.Blocks, snap_attach_i int) {
+	if snap_attach_i == other.attachs_rel_y.len - 1 && other !is blocks.Function {
+		app.blocks[id].x = other.x
+		if mut other is blocks.InputOutput {
+			other.output = app.clicked_block
+		} else if mut other is blocks.Condition {
+			other.output = app.clicked_block
+		} else if mut other is blocks.Loop {
+			other.output = app.clicked_block
+		}
+	} else {
+		app.blocks[id].x = other.x + blocks.attach_w
+		if mut other is blocks.Function {
+			other.inner[0] = app.clicked_block
+		} else if mut other is blocks.Condition {
+			other.inner[snap_attach_i] = app.clicked_block
+		} else if mut other is blocks.Loop {
+			other.inner[0] = app.clicked_block
+		}
+	}
+	mut b := &app.blocks[id]
+	if mut b is blocks.InputOutput {
+		b.input = other.id
+	} else if mut b is blocks.Input {
+		b.input = other.id
+	} else if mut b is blocks.Loop {
+		b.input = other.id
+	} else if mut b is blocks.Condition {
+		b.input = other.id
+	}
+	mut decal := 0
+	for decal_y in other.size_in[..snap_attach_i] {
+		decal += decal_y
+	}
+	b.y = other.attachs_rel_y[snap_attach_i] + other.y + decal
+}
+
+fn (mut app App) detach(mut b blocks.Blocks) {
+	if b.input != -1 {
+		app.blocks[app.find_index(b.input)].remove_id(b.id)
+		b.input = -1
+	} else if b.output != -1 {
+		app.blocks[app.find_index(b.output)].input = -1
+		b.output = -1
+	}
+	for mut inner in b.inner {
+		if inner != -1 {
+			app.blocks[app.find_index(inner)].input = -1
+			inner = -1
+		}
+	}
+}
+
+fn (mut app App) check_block_is_snapping_here(mut b blocks.Blocks) {
+	if b !is blocks.Function {
+		for mut other in app.blocks {
+			if other !is blocks.Input {
+				snap_i := b.is_snapping(other)
+				if snap_i != -1 {
+					if snap_i == other.attachs_rel_y.len - 1 && other !is blocks.Function {
+						b.x = other.x
+					} else {
+						b.x = other.x + blocks.attach_w
+					}
+					mut decal := 0
+					for decal_y in other.size_in[..snap_i] {
+						decal += decal_y
+					}
+					b.y = other.attachs_rel_y[snap_i] + other.y + decal
+					break
+				}
+			}
+		}
 	}
 }

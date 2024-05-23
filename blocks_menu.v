@@ -1,20 +1,45 @@
 import blocks
 import gx
 
-const fn_declare = init_block(blocks.Function{-1, int(Vari.function), 30, 10, [], 0, -1, [], [], []})!
-const condition = init_block(blocks.Condition{-1, int(Vari.condition), 30, 10, [], -1, -1, [], [], [
+const empty_contenant_h = blocks.blocks_h * 2 + blocks.attach_decal_y * 2
+const fn_declare = init_block(blocks.Function{-1, int(Vari.function), 30, 10, [], -1, -1, [
+	-1,
+], [], [], [], [], empty_contenant_h, [
 	0,
-]})!
-const @match = init_block(blocks.Condition{-1, int(Vari.@match), 30, 80, [], -1, -1, [], [], [
+]}) or { panic(err) }
+const condition = init_block(blocks.Condition{-1, int(Vari.condition), 30, 10, [], [], -1, -1, [
+	-1,
+], [], empty_contenant_h, [
+	0,
+]}) or { panic(err) }
+const @match = init_block(blocks.Condition{-1, int(Vari.@match), 30, 80, [], [], -1, -1, [
+	-1,
+], [], empty_contenant_h * 2 - blocks.blocks_h, [
 	0,
 	0,
-]})!
-const for_range = init_block(blocks.Loop{-1, int(Vari.for_range), 30, 10, [], 0, -1, -1, -1, -1, []})!
-const for_c = init_block(blocks.Loop{-1, int(Vari.for_c), 30, 80, [], 0, -1, -1, -1, -1, []})!
-const for_bool = init_block(blocks.Loop{-1, int(Vari.for_bool), 30, 160, [], 0, -1, -1, -1, -1, []})!
-const @return = init_block(blocks.Input{-1, int(Vari.@return), 30, 10, [], -1, []})!
-const panic = init_block(blocks.Input{-1, int(Vari.panic), 30, 50, [], -1, []})!
-const declare = init_block(blocks.InputOutput{-1, int(Vari.declare), 30, 10, [], -1, -1, []})!
+]}) or { panic(err) }
+const for_range = init_block(blocks.Loop{-1, int(Vari.for_range), 30, 10, [], [], -1, -1, [
+	-1,
+], -1, [], empty_contenant_h, [
+	0,
+]}) or { panic(err) }
+const for_c = init_block(blocks.Loop{-1, int(Vari.for_c), 30, 80, [], [], -1, -1, [-1], -1, [], empty_contenant_h, [
+	0,
+]}) or { panic(err) }
+const for_bool = init_block(blocks.Loop{-1, int(Vari.for_bool), 30, 160, [], [], -1, -1, [
+	-1,
+], -1, [], empty_contenant_h, [
+	0,
+]}) or { panic(err) }
+const @return = init_block(blocks.Input{-1, int(Vari.@return), 30, 10, [], -1, -1, [], [], [], blocks.blocks_h, []}) or {
+	panic(err)
+}
+const panic = init_block(blocks.Input{-1, int(Vari.panic), 30, 50, [], -1, -1, [], [], [], blocks.blocks_h, []}) or {
+	panic(err)
+}
+const declare = init_block(blocks.InputOutput{-1, int(Vari.declare), 30, 10, [], [], -1, -1, [], [], blocks.blocks_h, []}) or {
+	panic(err)
+}
 
 enum MenuMode {
 	function
@@ -75,7 +100,11 @@ fn (mut app App) check_clicks_menu(x int, y int) !bool {
 				match true {
 					fn_declare.is_clicked(x, y) {
 						app.set_block_offset(x, y, fn_declare)
-						app.blocks << init_block(blocks.Function{id, int(Vari.function), x, y, [], 0, -1, [], [], []})!
+						app.blocks << init_block(blocks.Function{id, int(Vari.function), x, y, [], -1, -1, [
+							-1,
+						], [], [], [], [], empty_contenant_h, [
+							0,
+						]})!
 					}
 					else {
 						app.max_id -= 1
@@ -86,13 +115,16 @@ fn (mut app App) check_clicks_menu(x int, y int) !bool {
 				match true {
 					condition.is_clicked(x, y) {
 						app.set_block_offset(x, y, condition)
-						app.blocks << init_block(blocks.Condition{id, int(Vari.condition), x, y, [], -1, -1, [], [], [
-							0,
-						]})!
+						app.blocks << init_block(blocks.Condition{id, int(Vari.condition), x, y, [], [], -1, -1, [
+							-1,
+						], [], empty_contenant_h, [0]})!
 					}
 					@match.is_clicked(x, y) {
 						app.set_block_offset(x, y, @match)
-						app.blocks << init_block(blocks.Condition{id, int(Vari.@match), 30, 50, [], -1, -1, [], [], [
+						app.blocks << init_block(blocks.Condition{id, int(Vari.@match), 30, 50, [], [], -1, -1, [
+							-1,
+							-1,
+						], [], empty_contenant_h * 2 - blocks.blocks_h, [
 							0,
 							0,
 						]})!
@@ -106,7 +138,7 @@ fn (mut app App) check_clicks_menu(x int, y int) !bool {
 				match true {
 					declare.is_clicked(x, y) {
 						app.set_block_offset(x, y, declare)
-						app.blocks << init_block(blocks.InputOutput{id, int(Vari.declare), 30, 10, [], -1, -1, []})!
+						app.blocks << init_block(blocks.InputOutput{id, int(Vari.declare), 30, 10, [], [], -1, -1, [], [], blocks.blocks_h, []})!
 					}
 					else {
 						app.max_id -= 1
@@ -117,11 +149,11 @@ fn (mut app App) check_clicks_menu(x int, y int) !bool {
 				match true {
 					@return.is_clicked(x, y) {
 						app.set_block_offset(x, y, @return)
-						app.blocks << init_block(blocks.Input{id, int(Vari.@return), 30, 10, [], -1, []})!
+						app.blocks << init_block(blocks.Input{id, int(Vari.@return), 30, 10, [], -1, -1, [], [], [], blocks.blocks_h, []})!
 					}
 					panic.is_clicked(x, y) {
 						app.set_block_offset(x, y, panic)
-						app.blocks << init_block(blocks.Input{id, int(Vari.panic), 30, 10, [], -1, []})!
+						app.blocks << init_block(blocks.Input{id, int(Vari.panic), 30, 10, [], -1, -1, [], [], [], blocks.blocks_h, []})!
 					}
 					else {
 						app.max_id -= 1
@@ -132,15 +164,27 @@ fn (mut app App) check_clicks_menu(x int, y int) !bool {
 				match true {
 					for_range.is_clicked(x, y) {
 						app.set_block_offset(x, y, for_range)
-						app.blocks << init_block(blocks.Loop{id, int(Vari.for_range), x, y, [], 0, -1, -1, -1, -1, []})!
+						app.blocks << init_block(blocks.Loop{id, int(Vari.for_range), x, y, [], [], -1, -1, [
+							-1,
+						], -1, [], empty_contenant_h, [
+							0,
+						]})!
 					}
 					for_c.is_clicked(x, y) {
 						app.set_block_offset(x, y, for_c)
-						app.blocks << init_block(blocks.Loop{id, int(Vari.for_c), x, y, [], 0, -1, -1, -1, -1, []})!
+						app.blocks << init_block(blocks.Loop{id, int(Vari.for_c), x, y, [], [], -1, -1, [
+							-1,
+						], -1, [], empty_contenant_h, [
+							0,
+						]})!
 					}
 					for_bool.is_clicked(x, y) {
 						app.set_block_offset(x, y, for_bool)
-						app.blocks << init_block(blocks.Loop{id, int(Vari.for_bool), x, y, [], 0, -1, -1, -1, -1, []})!
+						app.blocks << init_block(blocks.Loop{id, int(Vari.for_bool), x, y, [], [], -1, -1, [
+							-1,
+						], -1, [], empty_contenant_h, [
+							0,
+						]})!
 					}
 					else {
 						app.max_id -= 1
