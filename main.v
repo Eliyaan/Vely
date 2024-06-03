@@ -126,7 +126,9 @@ fn (mut app App) place_snap(x int, y int) {
 			for mut other in app.blocks {
 				if other !is blocks.Input {
 					snap_attach_i := app.blocks[i].is_snapping(other)
+					println(snap_attach_i)
 					if snap_attach_i != -1 { // snapped
+				println('snapped')
 						app.snap_update_id_y(i, mut other, snap_attach_i)
 						app.propagate_size(i, mut other, snap_attach_i)
 						break
@@ -139,7 +141,7 @@ fn (mut app App) place_snap(x int, y int) {
 }
 
 fn (mut app App) propagate_size(block_i int, mut other blocks.Blocks, snap_attach_i int) {
-	if other.snap_i_is_body(snap_attach_i) {
+	if other.snap_i_is_body(snap_attach_i) || true {
 		mut size := 0
 		mut tmp_block_id := app.blocks[block_i].id
 		for tmp_block_id != -1 {
@@ -150,7 +152,46 @@ fn (mut app App) propagate_size(block_i int, mut other blocks.Blocks, snap_attac
 			}
 			tmp_block_id = tmp_block.output
 		}
-		other.size_in[snap_attach_i] = size // TODO: need to propagate that to the parent body
+		mut child_id := app.blocks[block_i].id
+		tmp_block_id = other.id
+		for tmp_block_id != -1 {
+			println(app.find_index(child_id))
+			println(tmp_block_id)
+			mut tmp_block := &app.blocks[app.find_index(tmp_block_id)]
+			child_inner_i := app.blocks[app.find_index(child_id)].is_snapping(tmp_block)
+			if child_inner_i != -1 && child_inner_i < tmp_block.size_in.len {
+				tmp_block.size_in[child_inner_i] = size
+				for c_id in tmp_block.inner[child_inner_i + 1 ..] {
+					mut child_in_ids := [c_id]
+					for child_in_ids.len > 0 {
+						id := child_in_ids.pop()
+						if id != -1 {
+						app.blocks[app.find_index(id)].y += size
+						child_in_ids << app.blocks[app.find_index(id)].inner
+						child_in_ids << app.blocks[app.find_index(id)].output
+						}
+					}
+				}
+					mut child_in_ids := [tmp_block.output]
+					for child_in_ids.len > 0 {
+						id := child_in_ids.pop()
+						if id != -1 {
+						app.blocks[app.find_index(id)].y += size
+						child_in_ids << app.blocks[app.find_index(id)].inner
+						child_in_ids << app.blocks[app.find_index(id)].output
+						}
+					}
+			}
+				println(child_inner_i)
+			size += tmp_block.base_size
+			for nb, elem in tmp_block.size_in {
+				if nb != child_inner_i {
+					size += elem
+				}
+			}
+			child_id = tmp_block_id
+			tmp_block_id = tmp_block.input
+		}
 	}
 }
 

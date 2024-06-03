@@ -45,33 +45,33 @@ pub fn (block Blocks) is_snapping(other Blocks) int {
 		match other {
 			Loop {
 				if nb == 0 {
-					if other.inner[0] == -1 && snap_check_dist(block, other, attach) {
+					if (other.inner[0] == -1 || other.inner[0] == block.id) && snap_check_dist(block, other, attach) {
 						return nb
 					}
 				} else {
-					if other.output == -1 && snap_check_dist(block, other, attach + decal) {
+					if (other.output == -1 || other.output == block.id) && snap_check_dist(block, other, attach + decal) {
 						return nb
 					}
 				}
 			}
 			InputOutput {
-				if other.output == -1 && snap_check_dist(block, other, attach) {
+				if (other.output == -1 || other.output == block.id) && snap_check_dist(block, other, attach) {
 					return nb
 				}
 			}
 			Condition {
 				if nb == other.attachs_rel_y.len - 1 {
-					if other.output == -1 && snap_check_dist(block, other, attach + decal) {
+					if (other.output == -1 || other.output == block.id) && snap_check_dist(block, other, attach + decal) {
 						return nb
 					}
 				} else {
-					if other.inner[nb] == -1 && snap_check_dist(block, other, attach + decal) {
+					if (other.inner[nb] == -1 || other.inner[nb] == block.id) && snap_check_dist(block, other, attach + decal) {
 						return nb
 					}
 				}
 			}
 			Function {
-				if other.inner[0] == -1 && snap_check_dist(block, other, attach) {
+				if (other.inner[0] == -1 || other.inner[0] == block.id) && snap_check_dist(block, other, attach) {
 					return nb
 				}
 			}
