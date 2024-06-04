@@ -1,6 +1,7 @@
 next steps:
 [x] block snapping
-[ ] block resizing [WIP]
+[x] block resizing
+rework of the code in progress
 [ ] input text field
 [ ] side menu for selecting options
 [ ] detach groups/solo blocks
