@@ -8,6 +8,7 @@ const win_width = 1300
 const win_height = 700
 const bg_color = gg.Color{100, 100, 100, 255}
 
+@[heap]
 struct App {
 mut:
 	ctx                  &gg.Context = unsafe { nil }
@@ -38,13 +39,13 @@ enum Vari { // Variants
 }
 
 fn main() {
-	mut app := &App{}
+	mut app := App{}
 	app.ctx = gg.new_context(
 		width: win_width
 		height: win_height
 		create_window: true
 		window_title: '- Application -'
-		user_data: app
+		user_data: &app
 		bg_color: bg_color
 		frame_fn: on_frame
 		event_fn: on_event
@@ -53,15 +54,6 @@ fn main() {
 	)
 
 	app.ctx.run()
-}
-
-fn (app App) find_index(id int) int {
-	for i, elem in app.blocks {
-		if elem.id == id {
-			return i
-		}
-	}
-	panic('Did not find id ${id}')
 }
 
 fn on_frame(mut app App) {
@@ -74,7 +66,7 @@ fn on_frame(mut app App) {
 		}
 	}
 	if app.clicked_block != -1 {
-		app.blocks[app.find_index(app.clicked_block)].show(app.ctx)
+		app.blocks[blocks.find_index(app.clicked_block, app)].show(app.ctx)
 	}
 	app.show_blocks_menu()
 	app.ctx.end()
@@ -106,21 +98,20 @@ fn on_event(e &gg.Event, mut app App) {
 		}
 		else {}
 	}
-	// TODO: Size adapt : unpropagate when detaching
 	if app.clicked_block != -1 {
-		id := app.find_index(app.clicked_block)
+		id := blocks.find_index(app.clicked_block, app)
 		mut b := &app.blocks[id]
 		app.unpropagate_size(id)
-		app.detach(mut b)
+		b.detach(mut app)
 		b.x = int(e.mouse_x) - app.block_click_offset_x
 		b.y = int(e.mouse_y) - app.block_click_offset_y
-		app.check_block_is_snapping_here(mut b)
+		b.check_block_is_snapping_here(app)
 	}
 }
 
 fn (mut app App) place_snap(x int, y int) {
 	if app.clicked_block != -1 {
-		i := app.find_index(app.clicked_block)
+		i := blocks.find_index(app.clicked_block, app)
 		app.blocks[i].x = x - app.block_click_offset_x
 		app.blocks[i].y = y - app.block_click_offset_y
 		if app.blocks[i] !is blocks.Function {
@@ -144,7 +135,7 @@ fn (mut app App) unpropagate_size(block_i int) {
 		mut size := 0
 		mut tmp_block_id := app.blocks[block_i].id
 		for tmp_block_id != -1 {
-			tmp_block := app.blocks[app.find_index(tmp_block_id)]
+			tmp_block := app.blocks[blocks.find_index(tmp_block_id, app)]
 			size += tmp_block.base_size
 			for elem in tmp_block.size_in {
 				size += elem
@@ -154,82 +145,82 @@ fn (mut app App) unpropagate_size(block_i int) {
 		mut child_id := app.blocks[block_i].id
 		tmp_block_id = app.blocks[block_i].input
 		for tmp_block_id != -1 {
-			mut tmp_block := &app.blocks[app.find_index(tmp_block_id)]
-			child_inner_i := app.blocks[app.find_index(child_id)].is_snapping(tmp_block)
+			mut tmp_block := &app.blocks[blocks.find_index(tmp_block_id, app)]
+			child_inner_i := app.blocks[blocks.find_index(child_id, app)].is_snapping(tmp_block)
 			if child_inner_i != -1 && child_inner_i < tmp_block.size_in.len {
 				tmp_block.size_in[child_inner_i] -= size
-				for c_id in tmp_block.inner[child_inner_i + 1 ..] {
+				for c_id in tmp_block.inner[child_inner_i + 1..] {
 					mut child_in_ids := [c_id]
 					for child_in_ids.len > 0 {
 						id := child_in_ids.pop()
 						if id != -1 {
-						app.blocks[app.find_index(id)].y -= size
-						child_in_ids << app.blocks[app.find_index(id)].inner
-						child_in_ids << app.blocks[app.find_index(id)].output
+							app.blocks[blocks.find_index(id, app)].y -= size
+							child_in_ids << app.blocks[blocks.find_index(id, app)].inner
+							child_in_ids << app.blocks[blocks.find_index(id, app)].output
 						}
 					}
 				}
-					mut child_in_ids := [tmp_block.output]
-					for child_in_ids.len > 0 {
-						id := child_in_ids.pop()
-						if id != -1 {
-						app.blocks[app.find_index(id)].y -= size
-						child_in_ids << app.blocks[app.find_index(id)].inner
-						child_in_ids << app.blocks[app.find_index(id)].output
-						}
+				mut child_in_ids := [tmp_block.output]
+				for child_in_ids.len > 0 {
+					id := child_in_ids.pop()
+					if id != -1 {
+						app.blocks[blocks.find_index(id, app)].y -= size
+						child_in_ids << app.blocks[blocks.find_index(id, app)].inner
+						child_in_ids << app.blocks[blocks.find_index(id, app)].output
 					}
+				}
 			}
 			child_id = tmp_block_id
 			tmp_block_id = tmp_block.input
 		}
 		// only when detach single
-		app.blocks[block_i].size_in = []int{len:app.blocks[block_i].size_in.len}
+		app.blocks[block_i].size_in = []int{len: app.blocks[block_i].size_in.len}
 		// -
 	}
 }
 
 fn (mut app App) propagate_size(block_i int) {
-		mut size := 0
-		mut tmp_block_id := app.blocks[block_i].id
-		for tmp_block_id != -1 {
-			tmp_block := app.blocks[app.find_index(tmp_block_id)]
-			size += tmp_block.base_size
-			for elem in tmp_block.size_in {
-				size += elem
-			}
-			tmp_block_id = tmp_block.output
+	mut size := 0
+	mut tmp_block_id := app.blocks[block_i].id
+	for tmp_block_id != -1 {
+		tmp_block := app.blocks[blocks.find_index(tmp_block_id, app)]
+		size += tmp_block.base_size
+		for elem in tmp_block.size_in {
+			size += elem
 		}
-		mut child_id := app.blocks[block_i].id
-		tmp_block_id = app.blocks[block_i].input
-		for tmp_block_id != -1 {
-			mut tmp_block := &app.blocks[app.find_index(tmp_block_id)]
-			child_inner_i := app.blocks[app.find_index(child_id)].is_snapping(tmp_block)
-			if child_inner_i != -1 && child_inner_i < tmp_block.size_in.len {
-				tmp_block.size_in[child_inner_i] += size
-				for c_id in tmp_block.inner[child_inner_i + 1 ..] {
-					mut child_in_ids := [c_id]
-					for child_in_ids.len > 0 {
-						id := child_in_ids.pop()
-						if id != -1 {
-						app.blocks[app.find_index(id)].y += size
-						child_in_ids << app.blocks[app.find_index(id)].inner
-						child_in_ids << app.blocks[app.find_index(id)].output
-						}
+		tmp_block_id = tmp_block.output
+	}
+	mut child_id := app.blocks[block_i].id
+	tmp_block_id = app.blocks[block_i].input
+	for tmp_block_id != -1 {
+		mut tmp_block := &app.blocks[blocks.find_index(tmp_block_id, app)]
+		child_inner_i := app.blocks[blocks.find_index(child_id, app)].is_snapping(tmp_block)
+		if child_inner_i != -1 && child_inner_i < tmp_block.size_in.len {
+			tmp_block.size_in[child_inner_i] += size
+			for c_id in tmp_block.inner[child_inner_i + 1..] {
+				mut child_in_ids := [c_id]
+				for child_in_ids.len > 0 {
+					id := child_in_ids.pop()
+					if id != -1 {
+						app.blocks[blocks.find_index(id, app)].y += size
+						child_in_ids << app.blocks[blocks.find_index(id, app)].inner
+						child_in_ids << app.blocks[blocks.find_index(id, app)].output
 					}
 				}
-					mut child_in_ids := [tmp_block.output]
-					for child_in_ids.len > 0 {
-						id := child_in_ids.pop()
-						if id != -1 {
-						app.blocks[app.find_index(id)].y += size
-						child_in_ids << app.blocks[app.find_index(id)].inner
-						child_in_ids << app.blocks[app.find_index(id)].output
-						}
-					}
 			}
-			child_id = tmp_block_id
-			tmp_block_id = tmp_block.input
+			mut child_in_ids := [tmp_block.output]
+			for child_in_ids.len > 0 {
+				id := child_in_ids.pop()
+				if id != -1 {
+					app.blocks[blocks.find_index(id, app)].y += size
+					child_in_ids << app.blocks[blocks.find_index(id, app)].inner
+					child_in_ids << app.blocks[blocks.find_index(id, app)].output
+				}
+			}
 		}
+		child_id = tmp_block_id
+		tmp_block_id = tmp_block.input
+	}
 }
 
 fn (mut app App) snap_update_id_y(id int, mut other blocks.Blocks, snap_attach_i int) {
@@ -267,43 +258,4 @@ fn (mut app App) snap_update_id_y(id int, mut other blocks.Blocks, snap_attach_i
 		decal += decal_y
 	}
 	b.y = other.attachs_rel_y[snap_attach_i] + other.y + decal
-}
-
-fn (mut app App) detach(mut b blocks.Blocks) {
-	if b.input != -1 {
-		app.blocks[app.find_index(b.input)].remove_id(b.id)
-		b.input = -1
-	} else if b.output != -1 {
-		app.blocks[app.find_index(b.output)].input = -1
-		b.output = -1
-	}
-	for mut inner in b.inner {
-		if inner != -1 {
-			app.blocks[app.find_index(inner)].input = -1
-			inner = -1
-		}
-	}
-}
-
-fn (mut app App) check_block_is_snapping_here(mut b blocks.Blocks) {
-	if b !is blocks.Function {
-		for mut other in app.blocks {
-			if other !is blocks.Input {
-				snap_i := b.is_snapping(other)
-				if snap_i != -1 {
-					if snap_i == other.attachs_rel_y.len - 1 && other !is blocks.Function {
-						b.x = other.x
-					} else {
-						b.x = other.x + blocks.attach_w
-					}
-					mut decal := 0
-					for decal_y in other.size_in[..snap_i] {
-						decal += decal_y
-					}
-					b.y = other.attachs_rel_y[snap_i] + other.y + decal
-					break
-				}
-			}
-		}
-	}
 }
