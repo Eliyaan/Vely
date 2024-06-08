@@ -4,7 +4,7 @@ import gg
 import gx
 import os
 
-const text_size = 8
+pub const text_size = 8
 const snap_dist = 300
 pub const attach_decal_y = 5
 pub const attach_w = 14
@@ -23,11 +23,12 @@ mut:
 }
 
 pub interface Text {
+mut:
 	text string
 }
 
 pub struct JustT {
-pub:
+pub mut:
 	text string
 }
 

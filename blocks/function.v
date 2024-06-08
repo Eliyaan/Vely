@@ -35,7 +35,7 @@ pub fn (func Function) show(ctx gg.Context) {
 	for txt in func.text[0] {
 		tmp_text_size += txt.text.len + 1 // 1 is for the space between texts
 	}
-	size_txt := int(f32(tmp_text_size) * text_size) - (attach_w * 4 + end_block_w)
+	size_txt := int(f32(tmp_text_size) * text_size) - (attach_w * 3 + end_block_w)
 	expand_h := func.size_in[0] + blocks_h + 2 * attach_decal_y
 	ctx.draw_rect_filled(func.x, func.y, attach_w, expand_h + blocks_h, gx.pink)
 	// Start
@@ -63,7 +63,7 @@ pub fn (func Function) is_clicked(x int, y int) bool {
 		for txt in func.text[0] {
 			tmp_text_size += txt.text.len + 1 // 1 is for the space between texts
 		}
-		size_txt := int(f32(tmp_text_size) * text_size) - (attach_w * 4 + end_block_w)
+		size_txt := int(f32(tmp_text_size) * text_size) - (attach_w * 3 + end_block_w)
 		expand_h := func.size_in[0] + blocks_h + 2 * attach_decal_y
 		if x < func.x + attach_w + attach_w + attach_w + end_block_w + size_txt + attach_w / 2
 			&& y < func.y + blocks_h {

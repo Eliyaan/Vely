@@ -1,7 +1,7 @@
 next steps:
 [x] block snapping
 [x] block resizing
-[ ] input text field
+[x] input text field
 [ ] side menu for selecting options
 [ ] detach groups/solo blocks
 [ ] v file generating

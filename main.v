@@ -19,6 +19,9 @@ mut:
 	clicked_block        int = -1
 	block_click_offset_x int
 	block_click_offset_y int
+	input_id             int = -1
+	input_nb             int
+	input_txt_nb         int
 }
 
 enum Vari { // Variants
@@ -76,19 +79,70 @@ fn on_event(e &gg.Event, mut app App) {
 	match e.typ {
 		.key_down {
 			match e.key_code {
-				.escape { app.ctx.quit() }
-				else {}
+				.escape {
+					app.ctx.quit()
+				}
+				.enter {
+					app.input_id = -1
+				}
+				.backspace {
+					if app.input_id != -1 {
+						i := blocks.find_index(app.input_id, app)
+
+						app.blocks[i].text[app.input_nb] or {
+							panic('input_id valid but not input_nb')
+						}[app.input_txt_nb] or { panic('input_id valid but not input_txt_nb') }.text = app.blocks[i].text[app.input_nb][app.input_txt_nb].text#[..-1]
+					}
+				}
+				else {
+					if app.input_id != -1 {
+						i := blocks.find_index(app.input_id, app)
+
+						app.blocks[i].text[app.input_nb] or {
+							panic('input_id valid but not input_nb')
+						}[app.input_txt_nb] or { panic('input_id valid but not input_txt_nb') }.text =
+							app.blocks[i].text[app.input_nb][app.input_txt_nb].text +
+							e.key_code.str()
+					}
+				}
 			}
 		}
 		.mouse_down {
+			app.input_id = -1
 			x := int(e.mouse_x)
 			y := int(e.mouse_y)
 			if app.check_clicks_menu(x, y) or { panic(err) } {
 			} else {
-				for elem in app.blocks {
+				block_click: for elem in app.blocks {
 					if elem.is_clicked(x, y) {
+						mut decal_y := blocks.blocks_h
+						mut txt_click_detec := true
+						for nb, txts in elem.text {
+							if txt_click_detec {
+								mut decal_x := blocks.attach_w / 2
+								for nb_txt, txt in txts {
+									decal_x += (txt.text.len + 1) * blocks.text_size
+									if (x - elem.x) < decal_x && (y - elem.y) < decal_y
+										&& (y - elem.y) > decal_y - blocks.blocks_h {
+										match txt {
+											blocks.InputT {
+												app.input_id = elem.id
+												app.input_nb = nb
+												app.input_txt_nb = nb_txt
+												break block_click // only important thing is the text, not the block moving
+											}
+											else {}
+										}
+										txt_click_detec = false
+										break
+									}
+								}
+								decal_y += blocks.blocks_h + elem.size_in[nb] or { 0 }
+							}
+						}
 						app.clicked_block = elem.id
 						app.set_block_offset(x, y, elem)
+						break
 					}
 				}
 			}
