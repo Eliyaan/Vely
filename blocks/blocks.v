@@ -4,6 +4,7 @@ import gg
 import gx
 import os
 
+const text_size = 8
 const snap_dist = 300
 pub const attach_decal_y = 5
 pub const attach_w = 14
@@ -11,7 +12,7 @@ const end_block_w = 10
 pub const blocks_h = 27
 const text_cfg = gx.TextCfg{
 	color: gx.black
-	size: 15
+	size: 16
 	vertical_align: .middle
 }
 pub const font_path = os.resource_abs_path('0xProtoNerdFontMono-Regular.ttf')
@@ -19,6 +20,20 @@ pub const font_path = os.resource_abs_path('0xProtoNerdFontMono-Regular.ttf')
 pub interface App {
 mut:
 	blocks []Blocks
+}
+
+pub interface Text {
+	text string
+}
+
+pub struct JustT {
+pub:
+	text string
+}
+
+pub struct InputT {
+pub mut:
+	text string
 }
 
 pub interface Blocks {
@@ -33,7 +48,7 @@ mut:
 	input         int
 	output        int
 	inner         []int
-	text          []string
+	text          [][]Text
 	attachs_rel_y []int
 	base_size     int
 	size_in       []int

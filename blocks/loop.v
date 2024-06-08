@@ -10,7 +10,7 @@ pub:
 pub mut:
 	x             int
 	y             int
-	text          []string
+	text          [][]Text
 	attachs_rel_y []int
 	input         int
 	output        int
@@ -34,7 +34,11 @@ pub fn (l Loop) snap_i_is_body(snap_i int) bool {
 }
 
 pub fn (loop Loop) show(ctx gg.Context) {
-	size_txt := int(f32(loop.text[0].len) * 8.5) - (end_block_w + attach_w + attach_w + attach_w)
+	mut tmp_text_size := 0
+	for txt in loop.text[0] {
+		tmp_text_size += txt.text.len + 1 // 1 is for the space between texts
+	}
+	size_txt := int(f32(tmp_text_size) * text_size) - (end_block_w + attach_w + attach_w + attach_w)
 
 	expand_h := loop.size_in[0] + blocks_h + 2 * attach_decal_y
 	ctx.draw_rect_filled(loop.x, loop.y, attach_w, expand_h + blocks_h, gx.pink)
@@ -51,25 +55,35 @@ pub fn (loop Loop) show(ctx gg.Context) {
 	ctx.draw_rect_filled(loop.x + attach_w + attach_w, y, attach_w, blocks_h, gx.pink)
 
 	// END
-	ctx.draw_rect_filled(loop.x + attach_w + attach_w + attach_w, loop.y, end_block_w + size_txt,
-		blocks_h, gx.pink)
-	ctx.draw_rect_filled(loop.x + attach_w + attach_w + attach_w, y, end_block_w + size_txt,
-		blocks_h, gx.pink)
+	ctx.draw_rect_filled(loop.x + attach_w + attach_w + attach_w, loop.y, end_block_w + size_txt +
+		attach_w / 2, blocks_h, gx.pink)
+	ctx.draw_rect_filled(loop.x + attach_w + attach_w + attach_w, y, end_block_w + size_txt +
+		attach_w / 2, blocks_h, gx.pink)
 
-	ctx.draw_text(loop.x + attach_w / 2, loop.y + blocks_h / 2, loop.text[0], text_cfg)
+	mut decal := 0
+	for txt in loop.text[0] {
+		ctx.draw_text(loop.x + attach_w / 2 + decal, loop.y + blocks_h / 2, txt.text,
+			text_cfg)
+		decal += (txt.text.len + 1) * text_size
+	}
 }
 
 pub fn (loop Loop) is_clicked(x int, y int) bool {
 	if x > loop.x && y > loop.y {
-		size_txt := int(f32(loop.text[0].len) * 8.5) - (end_block_w + attach_w + attach_w + attach_w)
+		mut tmp_text_size := 0
+		for txt in loop.text[0] {
+			tmp_text_size += txt.text.len + 1 // 1 is for the space between texts
+		}
+		size_txt := int(f32(tmp_text_size) * text_size) - (end_block_w + attach_w + attach_w +
+			attach_w)
 		expand_h := (1 + loop.size_in[0]) * blocks_h + 2 * attach_decal_y
-		if x < loop.x + attach_w + attach_w + attach_w + end_block_w + size_txt
+		if x < loop.x + attach_w + attach_w + attach_w + end_block_w + size_txt + attach_w / 2
 			&& y < loop.y + blocks_h {
 			return true
 		} else if x < loop.x + attach_w && y < loop.y + expand_h + blocks_h {
 			return true
 		} else if x > loop.x + attach_w && y > loop.y + expand_h
-			&& x < loop.x + attach_w + attach_w + attach_w + end_block_w + size_txt
+			&& x < loop.x + attach_w + attach_w + attach_w + end_block_w + size_txt + attach_w / 2
 			&& y < loop.y + expand_h + blocks_h {
 			return true
 		}

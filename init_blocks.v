@@ -4,16 +4,23 @@ fn init_block(b blocks.Blocks) !blocks.Blocks {
 	mut block := b
 	match mut block {
 		blocks.Function {
-			block.text = ['fn `name` `name type`(+) returns`type`(+)']
+			block.text = [
+				[blocks.Text(blocks.JustT{'fn'}), blocks.InputT{'`name`'},
+					blocks.InputT{'`name type`'}, blocks.InputT{'(+)'},
+					blocks.JustT{'returns'}, blocks.InputT{'`type`'},
+					blocks.InputT{'(+)'}],
+			]
 			block.attachs_rel_y = [blocks.blocks_h]
 		}
 		blocks.Condition {
 			block.text << match Vari.from(block.variant)! {
 				.condition {
-					'if `condi` is true'
+					[blocks.Text(blocks.JustT{'if'}), blocks.InputT{'`condi`'},
+						blocks.JustT{'is true'}]
 				}
 				.@match {
-					'if `val` is :'
+					[blocks.Text(blocks.JustT{'if'}), blocks.InputT{'`val`'},
+						blocks.JustT{'is :'}]
 				}
 				else {
 					panic('${block.variant} not supported')
@@ -26,16 +33,16 @@ fn init_block(b blocks.Blocks) !blocks.Blocks {
 				block.text << match Vari.from(block.variant)! {
 					.condition {
 						if nb == block.size_in.len - 2 {
-							'else'
+							[blocks.Text(blocks.JustT{'else'})]
 						} else {
-							'else if'
+							[blocks.Text(blocks.JustT{'else if'}), blocks.InputT{'`condi`'}]
 						}
 					}
 					.@match {
 						if nb == block.size_in.len - 2 {
-							'else'
+							[blocks.Text(blocks.JustT{'else'})]
 						} else {
-							'`val`'
+							[blocks.Text(blocks.InputT{'`val`'})]
 						}
 					}
 					else {
@@ -49,14 +56,24 @@ fn init_block(b blocks.Blocks) !blocks.Blocks {
 			block.attachs_rel_y = [blocks.blocks_h, blocks.blocks_h + expand_h]
 			block.text = match Vari.from(block.variant)! {
 				.for_range {
-					['for each `i` in [`0` and `5`)']
+					[
+						[blocks.Text(blocks.JustT{'for each'}), blocks.InputT{'`i`'},
+							blocks.JustT{'in'}, blocks.InputT{'`0`'},
+							blocks.JustT{'..'}, blocks.InputT{'`5`'}],
+					]
 				}
 				.for_bool {
-					['while `bool` is true']
+					[
+						[blocks.Text(blocks.JustT{'while'}), blocks.InputT{'`bool`'},
+							blocks.JustT{'is true'}],
+					]
 				}
 				.for_c {
 					[
-						'repeat: start `i` equals `0` while `condition` and doing `action`',
+						[blocks.Text(blocks.JustT{'repeat: start'}), blocks.InputT{'`i`'},
+							blocks.JustT{'equals'}, blocks.InputT{'`0`'},
+							blocks.JustT{'while'}, blocks.InputT{'`condition`'},
+							blocks.JustT{'and doing'}, blocks.InputT{'`action`'}],
 					]
 				}
 				else {
@@ -67,10 +84,10 @@ fn init_block(b blocks.Blocks) !blocks.Blocks {
 		blocks.Input {
 			block.text = match Vari.from(block.variant)! {
 				.@return {
-					['return']
+					[[blocks.Text(blocks.JustT{'return'})]]
 				}
 				.panic {
-					['panic `arg`']
+					[[blocks.Text(blocks.JustT{'panic'}), blocks.InputT{'`arg`'}]]
 				}
 				else {
 					panic('${block.variant} not handled')
@@ -81,7 +98,11 @@ fn init_block(b blocks.Blocks) !blocks.Blocks {
 		blocks.InputOutput {
 			block.text = match Vari.from(block.variant)! {
 				.declare {
-					['new [x]mut var `a` value `val`']
+					[
+						[blocks.Text(blocks.JustT{'new'}), blocks.InputT{'[x]'},
+							blocks.JustT{'mut var'}, blocks.InputT{'`a`'},
+							blocks.JustT{'value'}, blocks.InputT{'`val`'}],
+					]
 				}
 				else {
 					panic('${block.variant} not handled')

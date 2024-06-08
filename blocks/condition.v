@@ -10,7 +10,7 @@ pub:
 pub mut:
 	x             int
 	y             int
-	text          []string
+	text          [][]Text
 	attachs_rel_y []int
 	input         int
 	output        int
@@ -37,7 +37,11 @@ pub fn (c Condition) snap_i_is_body(snap_i int) bool {
 }
 
 pub fn (con Condition) show(ctx gg.Context) {
-	size_txt := int(f32(con.text[0].len) * 8.8) - (attach_w + attach_w + attach_w + end_block_w)
+	mut tmp_text_size := 0
+	for txt in con.text[0] {
+		tmp_text_size += txt.text.len + 1 // 1 is for the space between texts
+	}
+	size_txt := int(f32(tmp_text_size) * text_size) - (attach_w + attach_w + attach_w + end_block_w)
 	// Attach up
 	ctx.draw_rect_filled(con.x + attach_w, (con.y + attach_decal_y), attach_w, blocks_h - attach_decal_y,
 		gx.pink)
@@ -45,13 +49,17 @@ pub fn (con Condition) show(ctx gg.Context) {
 	ctx.draw_rect_filled(con.x + attach_w + attach_w, con.y, attach_w, blocks_h + attach_decal_y,
 		gx.pink)
 	// END
-	ctx.draw_rect_filled(con.x + attach_w * 2 + attach_w, con.y, end_block_w + size_txt,
-		blocks_h, gx.pink)
+	ctx.draw_rect_filled(con.x + attach_w * 2 + attach_w, con.y, end_block_w + size_txt +
+		attach_w / 2, blocks_h, gx.pink)
 
 	mut expand_h := con.size_in[0] + blocks_h + 2 * attach_decal_y
 	mut pos := []int{}
 	for nb, size_px in con.size_in[1..] {
-		size_txt_in := int(f32(con.text[nb + 1].len) * 8.8) - (attach_w * 2 + end_block_w)
+		mut tmp_text_size_in := 0
+		for txt in con.text[nb + 1] {
+			tmp_text_size_in += txt.text.len + 1 // 1 is for the space between texts
+		}
+		size_txt_in := int(f32(tmp_text_size_in) * text_size) - (attach_w * 2 + end_block_w)
 		y := con.y + expand_h
 		pos << y
 		expand_h += size_px + blocks_h + 2 * attach_decal_y
@@ -61,8 +69,8 @@ pub fn (con Condition) show(ctx gg.Context) {
 		ctx.draw_rect_filled(con.x + attach_w + attach_w, y, attach_w, (blocks_h + attach_decal_y),
 			gx.pink)
 		// END
-		ctx.draw_rect_filled(con.x + attach_w + attach_w + attach_w, y, end_block_w + size_txt_in,
-			blocks_h, gx.pink)
+		ctx.draw_rect_filled(con.x + attach_w + attach_w + attach_w, y, end_block_w + size_txt_in +
+			attach_w / 2, blocks_h, gx.pink)
 	}
 	// End for end of the con
 	ctx.draw_rect_filled(con.x, con.y, attach_w, expand_h + blocks_h, gx.pink)
@@ -71,25 +79,45 @@ pub fn (con Condition) show(ctx gg.Context) {
 	ctx.draw_rect_filled(con.x + attach_w, y, attach_w, (blocks_h + attach_decal_y), gx.pink)
 	ctx.draw_rect_filled(con.x + attach_w + attach_w, y, attach_w, blocks_h, gx.pink)
 	// END
-	ctx.draw_rect_filled(con.x + attach_w + attach_w + attach_w, y, end_block_w + size_txt,
-		blocks_h, gx.pink)
+	mut decal := 0
+	ctx.draw_rect_filled(con.x + attach_w + attach_w + attach_w, y, end_block_w + size_txt +
+		attach_w / 2, blocks_h, gx.pink)
 	for nb, y_pos in pos {
-		ctx.draw_text(con.x + attach_w / 2, y_pos + blocks_h / 2, con.text[nb + 1], text_cfg)
+		decal = 0
+		for txt in con.text[nb + 1] {
+			ctx.draw_text(con.x + attach_w / 2 + decal, y_pos + blocks_h / 2, txt.text,
+				text_cfg)
+			decal += (txt.text.len + 1) * text_size
+		}
 	}
-	ctx.draw_text(con.x + attach_w / 2, con.y + blocks_h / 2, con.text[0], text_cfg)
+	decal = 0
+	for txt in con.text[0] {
+		ctx.draw_text(con.x + attach_w / 2 + decal, con.y + blocks_h / 2, txt.text, text_cfg)
+		decal += (txt.text.len + 1) * text_size
+	}
 }
 
 pub fn (con Condition) is_clicked(x int, y int) bool {
 	if x > con.x && y > con.y {
-		size_txt := int(f32(con.text[0].len) * 8.8) - (attach_w + attach_w + attach_w + end_block_w)
-		if x < con.x + attach_w * 2 + attach_w + end_block_w + size_txt && y < con.y + blocks_h {
+		mut tmp_text_size := 0
+		for txt in con.text[0] {
+			tmp_text_size += txt.text.len + 1 // 1 is for the space between texts
+		}
+		size_txt := int(f32(tmp_text_size) * text_size) - (attach_w + attach_w + attach_w +
+			end_block_w)
+		if x < con.x + attach_w * 2 + attach_w + end_block_w + size_txt + attach_w / 2
+			&& y < con.y + blocks_h {
 			return true
 		} else {
 			mut expand_h := con.size_in[0] + blocks_h + 2 * attach_decal_y
 			for nb, size_px in con.size_in[1..] {
-				size_txt_in := int(f32(con.text[nb + 1].len) * 8.8) - (attach_w * 2 + end_block_w)
+				mut tmp_text_size_in := 0
+				for txt in con.text[nb + 1] {
+					tmp_text_size_in += txt.text.len + 1 // 1 is for the space between texts
+				}
+				size_txt_in := int(f32(tmp_text_size_in) * text_size) - (attach_w * 2 + end_block_w)
 				if x > con.x + attach_w && y > con.y + expand_h {
-					if x < con.x + attach_w + attach_w + attach_w + end_block_w + size_txt_in
+					if x < con.x + attach_w + attach_w + attach_w + end_block_w + size_txt_in + attach_w / 2
 						&& y < con.y + expand_h + blocks_h {
 						return true
 					}
@@ -100,7 +128,7 @@ pub fn (con Condition) is_clicked(x int, y int) bool {
 				return true
 			}
 			if x > con.x + attach_w && y > con.y + expand_h {
-				if x < con.x + attach_w + attach_w + attach_w + end_block_w + size_txt
+				if x < con.x + attach_w + attach_w + attach_w + end_block_w + size_txt + attach_w / 2
 					&& y < con.y + expand_h + blocks_h {
 					return true
 				}
