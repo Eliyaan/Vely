@@ -141,6 +141,7 @@ pub fn (mut b Blocks) detach(mut app App) {
 		app.blocks[find_index(b.input, app)].remove_id(b.id)
 		b.input = -1
 	}
+	/*
 	if b.output != -1 { // only in detach single
 		app.blocks[find_index(b.output, app)].input = -1
 		b.output = -1
@@ -151,6 +152,7 @@ pub fn (mut b Blocks) detach(mut app App) {
 			inner = -1
 		}
 	}
+	*/
 }
 
 pub fn find_index(id int, app App) int {

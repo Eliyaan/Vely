@@ -19,6 +19,8 @@ mut:
 	clicked_block        int = -1
 	block_click_offset_x int
 	block_click_offset_y int
+	block_click_x        int
+	block_click_y        int
 	input_id             int = -1
 	input_nb             int
 	input_txt_nb         int
@@ -142,6 +144,8 @@ fn on_event(e &gg.Event, mut app App) {
 						}
 						app.clicked_block = elem.id
 						app.set_block_offset(x, y, elem)
+						app.block_click_x = elem.x
+						app.block_click_y = elem.y
 						break
 					}
 				}
@@ -160,6 +164,21 @@ fn on_event(e &gg.Event, mut app App) {
 		b.x = int(e.mouse_x) - app.block_click_offset_x
 		b.y = int(e.mouse_y) - app.block_click_offset_y
 		b.check_block_is_snapping_here(app)
+		// propagate pos to children		
+		mut child_in_ids := [b.output]
+		child_in_ids << b.inner
+		for child_in_ids.len > 0 {
+			id_child := child_in_ids.pop()
+			if id_child != -1 {
+				i := blocks.find_index(id_child, app)
+				app.blocks[i].x += b.x - app.block_click_x
+				app.blocks[i].y += b.y - app.block_click_y
+				child_in_ids << app.blocks[i].inner
+				child_in_ids << app.blocks[i].output
+			}
+		}
+		app.block_click_x = b.x
+		app.block_click_y = b.y
 	}
 }
 
@@ -228,8 +247,7 @@ fn (mut app App) unpropagate_size(block_i int) {
 			tmp_block_id = tmp_block.input
 		}
 		// only when detach single
-		app.blocks[block_i].size_in = []int{len: app.blocks[block_i].size_in.len}
-		// -
+		// app.blocks[block_i].size_in = []int{len: app.blocks[block_i].size_in.len}
 	}
 }
 
