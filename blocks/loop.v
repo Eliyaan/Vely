@@ -62,8 +62,12 @@ pub fn (loop Loop) show(ctx gg.Context) {
 
 	mut decal := 0
 	for txt in loop.text[0] {
+		cfg := match txt {
+			InputT { input_cfg }
+			else { text_cfg }
+		}
 		ctx.draw_text(loop.x + attach_w / 2 + decal, loop.y + blocks_h / 2, txt.text,
-			text_cfg)
+			cfg)
 		decal += (txt.text.len + 1) * text_size
 	}
 }

@@ -15,6 +15,11 @@ const text_cfg = gx.TextCfg{
 	size: 16
 	vertical_align: .middle
 }
+const input_cfg = gx.TextCfg{
+	color: gg.Color{150, 0, 100, 255}
+	size: 16
+	vertical_align: .middle
+}
 pub const font_path = os.resource_abs_path('0xProtoNerdFontMono-Regular.ttf')
 
 pub interface App {
@@ -33,6 +38,11 @@ pub mut:
 }
 
 pub struct InputT {
+pub mut:
+	text string
+}
+
+pub struct ButtonT {
 pub mut:
 	text string
 }

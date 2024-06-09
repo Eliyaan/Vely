@@ -3,11 +3,13 @@ next steps:
 - [x] block snapping
 - [x] block resizing
 - [x] input text field
-- [ ] side menu for selecting options
 - [x] detach groups
 - [ ] v file generating
 - [ ] button to launch the program & compile
 - [ ] camera pan
+- [ ] side menu for selecting options ? or better option 
+- [ ] working buttonTs
+lots of safety measures (not able to input an already used name, types...)
 work on the blocks & help menu
 
 

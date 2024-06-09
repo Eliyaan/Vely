@@ -85,14 +85,22 @@ pub fn (con Condition) show(ctx gg.Context) {
 	for nb, y_pos in pos {
 		decal = 0
 		for txt in con.text[nb + 1] {
+			cfg := match txt {
+				InputT { input_cfg }
+				else { text_cfg }
+			}
 			ctx.draw_text(con.x + attach_w / 2 + decal, y_pos + blocks_h / 2, txt.text,
-				text_cfg)
+				cfg)
 			decal += (txt.text.len + 1) * text_size
 		}
 	}
 	decal = 0
 	for txt in con.text[0] {
-		ctx.draw_text(con.x + attach_w / 2 + decal, con.y + blocks_h / 2, txt.text, text_cfg)
+		cfg := match txt {
+			InputT { input_cfg }
+			else { text_cfg }
+		}
+		ctx.draw_text(con.x + attach_w / 2 + decal, con.y + blocks_h / 2, txt.text, cfg)
 		decal += (txt.text.len + 1) * text_size
 	}
 }

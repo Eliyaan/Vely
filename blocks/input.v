@@ -40,8 +40,12 @@ pub fn (input Input) show(ctx gg.Context) {
 		attach_w / 2, blocks_h, gx.pink)
 	mut decal := 0
 	for txt in input.text[0] {
+		cfg := match txt {
+			InputT { input_cfg }
+			else { text_cfg }
+		}
 		ctx.draw_text(input.x + attach_w / 2 + decal, input.y + blocks_h / 2, txt.text,
-			text_cfg)
+			cfg)
 		decal += (txt.text.len + 1) * text_size
 	}
 }
