@@ -1,12 +1,21 @@
 next steps:
+
 [x] block snapping
+
 [x] block resizing
+
 [x] input text field
+
 [ ] side menu for selecting options
+
 [x] detach groups
+
 [ ] v file generating
+
 [ ] button to launch the program & compile
+
 [ ] camera pan
+
 work on the blocks
 
 
