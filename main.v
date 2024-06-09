@@ -96,6 +96,9 @@ fn on_event(e &gg.Event, mut app App) {
 						}[app.input_txt_nb] or { panic('input_id valid but not input_txt_nb') }.text = app.blocks[i].text[app.input_nb][app.input_txt_nb].text#[..-1]
 					}
 				}
+				.delete { // TODO change with button
+					v_file(app)
+				}
 				else {
 					if app.input_id != -1 {
 						i := blocks.find_index(app.input_id, app)
@@ -180,6 +183,71 @@ fn on_event(e &gg.Event, mut app App) {
 		app.block_click_x = b.x
 		app.block_click_y = b.y
 	}
+}
+
+fn v_file(app App) {
+	fns := []Blocks{}
+	for b in app.blocks {
+		if b is blocks.Function {
+			fns << b
+		}
+	}
+	mut file := ''
+	for f in fns {
+		file += process(app, id)
+	}
+}
+
+fn process(app App, id int) string {
+	if id != -1 {
+		s := ""
+		b := app.blocks[find_index(id, app)]
+		match b {
+			blocks.Condition {
+				match variant
+			}
+			blocks.Function {
+				s += "\nfn "
+				s += b.text[0][1] // name
+				s += "("
+				mut i := 3
+				for i < b.text[0].len {
+					if b.text[0][i] is blocks.InputT{
+						s += b.text[0][i]
+					} else if b.text[0][i] is blocks.ButtonT {
+						s += ")"
+					}
+					i += 1
+				} 
+				s += " {"
+			}
+			blocks.InputOutput {}
+			blocks.Input {}
+			blocks.Loop {}
+			else {}
+		}
+		s += process_inner(app, id)
+		s += process_output(app, id)
+	}
+}
+
+fn process_inner(app App, id int) string {
+	b := app.blocks[find_index(id, app)]
+	mut s := ""
+	for id_inner in b.inner {
+		s += process(app, id_inner)
+	}
+	return s
+}
+
+fn process_output(app App, id int) string {
+	b := app.blocks[find_index(id, app)]
+	if b.output != -1 {
+		mut s := ""
+		s += process(app, b.output)
+		return s
+	}
+	return "}"
 }
 
 fn (mut app App) place_snap(x int, y int) {

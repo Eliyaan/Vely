@@ -6,7 +6,7 @@ fn init_block(b blocks.Blocks) !blocks.Blocks {
 		blocks.Function {
 			block.text = [
 				[blocks.Text(blocks.JustT{'fn'}), blocks.InputT{'name'},
-					blocks.JustT{')'}, blocks.ButtonT{'(+)'},
+					blocks.JustT{'('}, blocks.ButtonT{'(+)'},
 					blocks.JustT{')'}, blocks.ButtonT{'(+)'}],
 			]
 			block.attachs_rel_y = [blocks.blocks_h]
