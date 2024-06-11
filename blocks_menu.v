@@ -1,5 +1,4 @@
 import blocks
-import gx
 
 const empty_contenant_h = blocks.blocks_h * 2 + blocks.attach_decal_y * 2
 const fn_declare = init_block(blocks.Function{-1, int(Vari.function), 30, 10, [], -1, -1, [
@@ -53,11 +52,11 @@ enum MenuMode {
 }
 
 fn (app App) show_blocks_menu() {
-	app.ctx.draw_square_filled(0, 0, 20, gx.red)
-	app.ctx.draw_square_filled(0, 20, 20, gx.blue)
-	app.ctx.draw_square_filled(0, 40, 20, gx.pink)
-	app.ctx.draw_square_filled(0, 60, 20, gx.green)
-	app.ctx.draw_square_filled(0, 80, 20, gx.yellow)
+	app.ctx.draw_square_filled(0, 0, 20, blocks.func_color)
+	app.ctx.draw_square_filled(0, 20, 20, blocks.con_color)
+	app.ctx.draw_square_filled(0, 40, 20, blocks.io_color)
+	app.ctx.draw_square_filled(0, 60, 20, blocks.in_color)
+	app.ctx.draw_square_filled(0, 80, 20, blocks.loop_color)
 	match app.menu_mode {
 		.function {
 			fn_declare.show(app.ctx)

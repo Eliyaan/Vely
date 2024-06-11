@@ -1,7 +1,8 @@
 module blocks
 
 import gg
-import gx
+
+pub const con_color = gg.Color{249, 226, 175, 255}
 
 pub struct Condition {
 pub:
@@ -44,13 +45,13 @@ pub fn (con Condition) show(ctx gg.Context) {
 	size_txt := int(f32(tmp_text_size) * text_size) - (attach_w + attach_w + attach_w + end_block_w)
 	// Attach up
 	ctx.draw_rect_filled(con.x + attach_w, (con.y + attach_decal_y), attach_w, blocks_h - attach_decal_y,
-		gx.pink)
+		blocks.con_color)
 	// Attach down
 	ctx.draw_rect_filled(con.x + attach_w + attach_w, con.y, attach_w, blocks_h + attach_decal_y,
-		gx.pink)
+		blocks.con_color)
 	// END
 	ctx.draw_rect_filled(con.x + attach_w * 2 + attach_w, con.y, end_block_w + size_txt +
-		attach_w / 2, blocks_h, gx.pink)
+		attach_w / 2, blocks_h, blocks.con_color)
 
 	mut expand_h := con.size_in[0] + blocks_h + 2 * attach_decal_y
 	mut pos := []int{}
@@ -64,24 +65,24 @@ pub fn (con Condition) show(ctx gg.Context) {
 		pos << y
 		expand_h += size_px + blocks_h + 2 * attach_decal_y
 		// Start
-		ctx.draw_rect_filled(con.x + attach_w, y, attach_w, blocks_h, gx.pink)
+		ctx.draw_rect_filled(con.x + attach_w, y, attach_w, blocks_h, blocks.con_color)
 		// Attach down
 		ctx.draw_rect_filled(con.x + attach_w + attach_w, y, attach_w, (blocks_h + attach_decal_y),
-			gx.pink)
+			blocks.con_color)
 		// END
 		ctx.draw_rect_filled(con.x + attach_w + attach_w + attach_w, y, end_block_w + size_txt_in +
-			attach_w / 2, blocks_h, gx.pink)
+			attach_w / 2, blocks_h, blocks.con_color)
 	}
 	// End for end of the con
-	ctx.draw_rect_filled(con.x, con.y, attach_w, expand_h + blocks_h, gx.pink)
+	ctx.draw_rect_filled(con.x, con.y, attach_w, expand_h + blocks_h, blocks.con_color)
 	y := con.y + expand_h
 	// Attach down
-	ctx.draw_rect_filled(con.x + attach_w, y, attach_w, (blocks_h + attach_decal_y), gx.pink)
-	ctx.draw_rect_filled(con.x + attach_w + attach_w, y, attach_w, blocks_h, gx.pink)
+	ctx.draw_rect_filled(con.x + attach_w, y, attach_w, (blocks_h + attach_decal_y), blocks.con_color)
+	ctx.draw_rect_filled(con.x + attach_w + attach_w, y, attach_w, blocks_h, blocks.con_color)
 	// END
 	mut decal := 0
 	ctx.draw_rect_filled(con.x + attach_w + attach_w + attach_w, y, end_block_w + size_txt +
-		attach_w / 2, blocks_h, gx.pink)
+		attach_w / 2, blocks_h, blocks.con_color)
 	for nb, y_pos in pos {
 		decal = 0
 		for txt in con.text[nb + 1] {

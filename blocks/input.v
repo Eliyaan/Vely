@@ -1,7 +1,8 @@
 module blocks
 
 import gg
-import gx
+
+pub const in_color = gg.Color{243, 139, 168, 255}
 
 pub struct Input {
 pub:
@@ -33,11 +34,11 @@ pub fn (input Input) show(ctx gg.Context) {
 		tmp_text_size += txt.text.len + 1 // 1 is for the space between texts
 	}
 	size_txt := int(f32(tmp_text_size) * text_size) - (end_block_w + attach_w + attach_w)
-	ctx.draw_rect_filled(input.x, input.y, attach_w, blocks_h, gx.pink)
+	ctx.draw_rect_filled(input.x, input.y, attach_w, blocks_h, blocks.in_color)
 	ctx.draw_rect_filled(input.x + attach_w, input.y + attach_decal_y, attach_w, blocks_h - attach_decal_y,
-		gx.pink)
+		blocks.in_color)
 	ctx.draw_rect_filled(input.x + (attach_w + attach_w), input.y, end_block_w + size_txt +
-		attach_w / 2, blocks_h, gx.pink)
+		attach_w / 2, blocks_h, blocks.in_color)
 	mut decal := 0
 	for txt in input.text[0] {
 		cfg := match txt {

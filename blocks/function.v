@@ -1,7 +1,8 @@
 module blocks
 
 import gg
-import gx
+
+pub const func_color = gg.Color{245, 194, 231, 255}
 
 pub struct Function {
 pub:
@@ -37,18 +38,18 @@ pub fn (func Function) show(ctx gg.Context) {
 	}
 	size_txt := int(f32(tmp_text_size) * text_size) - (attach_w * 3 + end_block_w)
 	expand_h := func.size_in[0] + blocks_h + 2 * attach_decal_y
-	ctx.draw_rect_filled(func.x, func.y, attach_w, expand_h + blocks_h, gx.pink)
+	ctx.draw_rect_filled(func.x, func.y, attach_w, expand_h + blocks_h, blocks.func_color)
 	// Start
-	ctx.draw_rect_filled(func.x + attach_w, func.y, attach_w, blocks_h, gx.pink)
+	ctx.draw_rect_filled(func.x + attach_w, func.y, attach_w, blocks_h, blocks.func_color)
 	// End for end of the loop
 	ctx.draw_rect_filled(func.x + attach_w, (func.y + expand_h), end_block_w + attach_w * 2 +
-		size_txt + attach_w / 2, blocks_h, gx.pink)
+		size_txt + attach_w / 2, blocks_h, blocks.func_color)
 	// Attach
 	ctx.draw_rect_filled(func.x + attach_w + attach_w, func.y, attach_w, (blocks_h + attach_decal_y),
-		gx.pink)
+		blocks.func_color)
 	// END
 	ctx.draw_rect_filled(func.x + attach_w + attach_w + attach_w, func.y, end_block_w + size_txt +
-		attach_w / 2, blocks_h, gx.pink)
+		attach_w / 2, blocks_h, blocks.func_color)
 	mut decal := 0
 	for txt in func.text[0] {
 		cfg := match txt {

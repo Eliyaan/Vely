@@ -2,12 +2,12 @@ module main
 
 import blocks
 import gg
-import gx
 import os
 
 const win_width = 1300
 const win_height = 700
-const bg_color = gg.Color{100, 100, 100, 255}
+const bg_color = gg.Color{166, 173, 200, 255}
+const menu_color = gg.Color{127, 132, 156, 255}
 
 @[heap]
 struct App {
@@ -65,7 +65,7 @@ fn main() {
 
 fn on_frame(mut app App) {
 	// Draw
-	app.ctx.draw_rect_filled(0, 0, 500, 2000, gx.black)
+	app.ctx.draw_rect_filled(0, 0, 365, 2000, menu_color)
 	app.ctx.begin()
 	for mut block in app.blocks {
 		if block.id != app.clicked_block {

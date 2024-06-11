@@ -70,10 +70,10 @@ fn init_block(b blocks.Blocks) !blocks.Blocks {
 				}
 				.for_c {
 					[
-						[blocks.Text(blocks.JustT{'repeat: start'}), blocks.InputT{'i'},
-							blocks.JustT{'equals'}, blocks.InputT{'0'},
-							blocks.JustT{'while'}, blocks.InputT{'1 == 1'},
-							blocks.JustT{'and doing'}, blocks.InputT{'i += 1'}],
+						[blocks.Text(blocks.JustT{'start'}), blocks.InputT{'i'},
+							blocks.JustT{':='}, blocks.InputT{'0'},
+							blocks.JustT{'; while'}, blocks.InputT{'1 == 1'},
+							blocks.JustT{'->'}, blocks.InputT{'i += 1'}],
 					]
 				}
 				else {
