@@ -102,9 +102,9 @@ fn init_block(b blocks.Blocks) !blocks.Blocks {
 			block.text = match Vari.from(block.variant)! {
 				.declare {
 					[
-						[blocks.Text(blocks.JustT{'new'}), blocks.InputT{'[x]'},
+						[blocks.Text(blocks.JustT{'new'}), blocks.ButtonT{'[x]'},
 							blocks.JustT{'mut'}, blocks.InputT{'a'},
-							blocks.JustT{':='}, blocks.InputT{'val'}],
+							blocks.JustT{':='}, blocks.InputT{'0'}],
 					]
 				}
 				else {

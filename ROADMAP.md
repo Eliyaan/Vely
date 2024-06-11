@@ -8,7 +8,7 @@ next steps:
 - [ ] button to launch the program & compile
 - [ ] camera pan
 - [ ] side menu for selecting options ? or better option 
-- [ ] working buttonTs
+- [ ] working ButtonTs
 lots of safety measures (not able to input an already used name, types...)
 work on the blocks & help menu
 
