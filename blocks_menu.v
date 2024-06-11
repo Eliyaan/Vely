@@ -40,6 +40,9 @@ const panic = init_block(blocks.Input{-1, int(Vari.panic), 30, 50, [], -1, -1, [
 const declare = init_block(blocks.InputOutput{-1, int(Vari.declare), 30, 10, [], [], -1, -1, [], [], blocks.blocks_h, []}) or {
 	panic(err)
 }
+const println = init_block(blocks.InputOutput{-1, int(Vari.println), 30, 50, [], [], -1, -1, [], [], blocks.blocks_h, []}) or {
+	panic(err)
+}
 
 enum MenuMode {
 	function
@@ -65,6 +68,7 @@ fn (app App) show_blocks_menu() {
 		}
 		.i_o {
 			declare.show(app.ctx)
+			println.show(app.ctx)
 		}
 		.input {
 			@return.show(app.ctx)
@@ -139,6 +143,10 @@ fn (mut app App) check_clicks_menu(x int, y int) !bool {
 					declare.is_clicked(x, y) {
 						app.set_block_offset(x, y, declare)
 						app.blocks << init_block(blocks.InputOutput{id, int(Vari.declare), 30, 10, [], [], -1, -1, [], [], blocks.blocks_h, []})!
+					}
+					println.is_clicked(x, y) {
+						app.set_block_offset(x, y, println)
+						app.blocks << init_block(blocks.InputOutput{id, int(Vari.println), 30, 10, [], [], -1, -1, [], [], blocks.blocks_h, []})!
 					}
 					else {
 						app.max_id -= 1

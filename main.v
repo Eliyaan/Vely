@@ -3,6 +3,7 @@ module main
 import blocks
 import gg
 import gx
+import os
 
 const win_width = 1300
 const win_height = 700
@@ -41,6 +42,7 @@ enum Vari { // Variants
 	panic
 	// Input outputs
 	declare
+	println
 }
 
 fn main() {
@@ -196,7 +198,7 @@ fn v_file(app App) {
 	for f in fns {
 		file += process(app, f.id)
 	}
-	println(file)
+	os.write_file('output/output.v', file) or { panic(err) }
 }
 
 fn process(app App, id int) string {
@@ -286,6 +288,13 @@ fn process(app App, id int) string {
 						s += b.text[0][5].text
 						s += process(app, b.output)
 					}
+					.println {
+						s += '\n'
+						s += 'println("'
+						s += b.text[0][1].text
+						s += '")'
+						s += process(app, b.output)
+					}
 					else {
 						panic('i_o variant ${b.variant} not handled in v file output')
 					}
@@ -295,14 +304,12 @@ fn process(app App, id int) string {
 				match Vari.from(b.variant) or { panic('variant not handled ${b.variant}') } {
 					.panic {
 						s += '\n'
-						s += 'panic('
+						s += 'panic("'
 						s += b.text[0][1].text
-						s += ')'
-						s += process(app, b.output)
+						s += '")'
 					}
 					.@return {
 						s += '\nreturn'
-						s += process(app, b.output)
 					}
 					else {
 						panic('input variant ${b.variant} not handled in v file output')

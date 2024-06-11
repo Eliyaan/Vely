@@ -4,7 +4,7 @@ next steps:
 - [x] block resizing
 - [x] input text field
 - [x] detach groups
-- [ ] v file generating
+- [x] v file generating
 - [ ] button to launch the program & compile
 - [ ] camera pan
 - [ ] side menu for selecting options ? or better option 

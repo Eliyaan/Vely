@@ -88,8 +88,8 @@ fn init_block(b blocks.Blocks) !blocks.Blocks {
 				}
 				.panic {
 					[
-						[blocks.Text(blocks.JustT{'panic('}), blocks.InputT{'" Problem! "'},
-							blocks.JustT{')'}],
+						[blocks.Text(blocks.JustT{'panic("'}), blocks.InputT{'Problem!'},
+							blocks.JustT{'")'}],
 					]
 				}
 				else {
@@ -105,6 +105,12 @@ fn init_block(b blocks.Blocks) !blocks.Blocks {
 						[blocks.Text(blocks.JustT{'new'}), blocks.ButtonT{'[x]'},
 							blocks.JustT{'mut'}, blocks.InputT{'a'},
 							blocks.JustT{':='}, blocks.InputT{'0'}],
+					]
+				}
+				.println {
+					[
+						[blocks.Text(blocks.JustT{'println("'}), blocks.InputT{'Problem!'},
+							blocks.JustT{'")'}],
 					]
 				}
 				else {
