@@ -9,7 +9,9 @@ next steps:
 - [ ] camera pan
 - [ ] side menu for selecting options ? or better option 
 - [ ] working ButtonTs
+
 lots of safety measures (not able to input an already used name, types...)
+
 work on the blocks & help menu
 
 
