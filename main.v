@@ -3,6 +3,7 @@ module main
 import blocks
 import gg
 import os
+import time
 
 const win_width = 1300
 const win_height = 700
@@ -99,7 +100,7 @@ fn on_event(e &gg.Event, mut app App) {
 					}
 				}
 				.delete { // TODO change with button
-					v_file(app)
+					run_prog(app)
 				}
 				else {
 					if app.input_id != -1 {
@@ -187,6 +188,34 @@ fn on_event(e &gg.Event, mut app App) {
 	}
 }
 
+fn run_prog(app App) {
+	v_file(app)
+	os.execute("v fmt -w output/output.v")
+	v_exe := os.find_abs_path_of_executable('v') or {
+		eprintln('This example needs a v executable in your PATH. Please install V to see it in action.')
+		exit(1)
+	}
+	mut p := os.new_process(v_exe)
+	defer {
+		p.close()
+		p.wait()
+	}
+	
+	p.set_args(['run', 'output/output.v'])
+	p.set_redirect_stdio()
+	p.run()
+	for p.is_alive() {
+		// check if there is any input from the user (it does not block, if there is not):
+		if oline := p.pipe_read(.stdout) {
+			print(oline)
+		}
+		if eline := p.pipe_read(.stderr) {
+			eprint(eline)
+		}
+		time.sleep(1 * time.millisecond)
+	}
+}
+
 fn v_file(app App) {
 	mut fns := []blocks.Blocks{}
 	for b in app.blocks {
@@ -225,12 +254,12 @@ fn process(app App, id int) string {
 						s += process(app, b.output)
 					}
 					.@match {
-						s += '\nmatch {'
-						for nb, t in b.text {
+						s += '\nmatch '
+						s += b.text[0][1].text
+						s += ' {'
+						for nb, t in b.text[1..] {
 							s += '\n'
-							if nb == 0 {
-								s += t[1].text
-							} else if nb == b.text.len - 1 {
+							if nb == b.text.len - 2 {
 								s += 'else '
 							} else {
 								s += t[0].text
@@ -273,6 +302,9 @@ fn process(app App, id int) string {
 					i += 1
 				}
 				s += ' {'
+				if b.text[0][1].text.trim_space() == "main" {
+					s += "\nunbuffer_stdout() // useful for Vely, when running the program (added automatically by Vely)"
+				}
 				s += process_inner(app, id)
 				s += '\n}'
 			}
