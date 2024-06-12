@@ -26,6 +26,9 @@ mut:
 	input_id             int = -1
 	input_nb             int
 	input_txt_nb         int
+	show_output 	bool
+	program_running bool
+	prog os.Process
 }
 
 enum Vari { // Variants
@@ -77,10 +80,27 @@ fn on_frame(mut app App) {
 		app.blocks[blocks.find_index(app.clicked_block, app)].show(app.ctx)
 	}
 	app.show_blocks_menu()
+	win_size := gg.window_size()
+	run_color := if app.show_output {
+		if app.program_running {
+			gg.Color{255, 0, 0, 255}
+		} else {
+			gg.Color{0, 255, 0, 255}
+		}
+	}
+	else {
+		gg.Color{128, 128, 128, 255}
+	}	
+	if app.show_output {
+		app.ctx.draw_rect_filled(win_size.width-300, 0, 300, 2000, menu_color)
+		app.ctx.draw_square_filled(win_size.width-295, 5, 20, gg.Color{255, 0, 0, 255})
+	}
+	app.ctx.draw_square_filled(win_size.width-25, 5, 20, run_color)
 	app.ctx.end()
 }
 
 fn on_event(e &gg.Event, mut app App) {
+	win_size := gg.window_size()
 	match e.typ {
 		.key_down {
 			match e.key_code {
@@ -100,7 +120,6 @@ fn on_event(e &gg.Event, mut app App) {
 					}
 				}
 				.delete { // TODO change with button
-					run_prog(app)
 				}
 				else {
 					if app.input_id != -1 {
@@ -120,6 +139,27 @@ fn on_event(e &gg.Event, mut app App) {
 			x := int(e.mouse_x)
 			y := int(e.mouse_y)
 			if app.check_clicks_menu(x, y) or { panic(err) } {
+			} else if app.show_output && x >= win_size.width-295 && x < win_size.width-275 && y >= 5 && y < 25 {
+				app.show_output = false
+			} else if x >= win_size.width-25 && x < win_size.width-5 && y >= 5 && y < 25{
+				if app.show_output {
+					if app.program_running {
+						app.program_running = false
+						app.prog.signal_kill()
+					} else {
+						app.program_running = true
+						v_file(app)
+						os.execute("v fmt -w output/output.v")
+						v_exe := os.find_abs_path_of_executable('v') or {
+							eprintln('Vely needs a v executable in your PATH. Please install V to see it in action.')
+							return
+						}
+						app.prog = os.new_process(v_exe)
+						spawn run_prog(mut app)
+					}
+				} else {
+					app.show_output = true
+				}
 			} else {
 				block_click: for elem in app.blocks {
 					if elem.is_clicked(x, y) {
@@ -188,32 +228,26 @@ fn on_event(e &gg.Event, mut app App) {
 	}
 }
 
-fn run_prog(app App) {
-	v_file(app)
-	os.execute("v fmt -w output/output.v")
-	v_exe := os.find_abs_path_of_executable('v') or {
-		eprintln('This example needs a v executable in your PATH. Please install V to see it in action.')
-		exit(1)
-	}
-	mut p := os.new_process(v_exe)
+fn run_prog(mut app App) {
 	defer {
-		p.close()
-		p.wait()
+		app.prog.close()
+		app.prog.wait()
 	}
 	
-	p.set_args(['run', 'output/output.v'])
-	p.set_redirect_stdio()
-	p.run()
-	for p.is_alive() {
+	app.prog.set_args(['run', 'output/output.v'])
+	app.prog.set_redirect_stdio()
+	app.prog.run()
+	for app.prog.is_alive() {
 		// check if there is any input from the user (it does not block, if there is not):
-		if oline := p.pipe_read(.stdout) {
+		if oline := app.prog.pipe_read(.stdout) {
 			print(oline)
 		}
-		if eline := p.pipe_read(.stderr) {
+		if eline := app.prog.pipe_read(.stderr) {
 			eprint(eline)
 		}
 		time.sleep(1 * time.millisecond)
 	}
+	app.program_running = false
 }
 
 fn v_file(app App) {
