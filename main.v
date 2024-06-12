@@ -2,6 +2,7 @@ module main
 
 import blocks
 import gg
+import gx
 import os
 import time
 
@@ -9,6 +10,12 @@ const win_width = 1300
 const win_height = 700
 const bg_color = gg.Color{166, 173, 200, 255}
 const menu_color = gg.Color{127, 132, 156, 255}
+const console_color = gg.Color{49, 50, 68, 255}
+const console_cfg = gx.TextCfg{
+	size: 16
+	color: gg.Color{205, 214, 244, 255}
+}
+const console_size = 500
 
 @[heap]
 struct App {
@@ -26,9 +33,11 @@ mut:
 	input_id             int = -1
 	input_nb             int
 	input_txt_nb         int
-	show_output 	bool
-	program_running bool
-	prog os.Process
+	show_output          bool
+	program_running      bool
+	prog                 os.Process
+	p_output             string
+	console_scroll       int
 }
 
 enum Vari { // Variants
@@ -87,16 +96,31 @@ fn on_frame(mut app App) {
 		} else {
 			gg.Color{0, 255, 0, 255}
 		}
-	}
-	else {
+	} else {
 		gg.Color{128, 128, 128, 255}
-	}	
-	if app.show_output {
-		app.ctx.draw_rect_filled(win_size.width-300, 0, 300, 2000, menu_color)
-		app.ctx.draw_square_filled(win_size.width-295, 5, 20, gg.Color{255, 0, 0, 255})
 	}
-	app.ctx.draw_square_filled(win_size.width-25, 5, 20, run_color)
+	if app.show_output {
+		app.ctx.draw_rect_filled(win_size.width - console_size, 0, console_size, 2000,
+			console_color)
+		app.ctx.draw_square_filled(win_size.width - console_size + 5, 5, 20, gg.Color{255, 0, 0, 255})
+		split_out := app.p_output.split('\n')
+		if app.p_output.len > 1_000_000 {
+			app.kill_prog()
+		}
+		for n, line in split_out {
+			y := 40 + 18 * n - app.console_scroll * 18
+			if y < win_size.height + 16 && y > 30 {
+				app.ctx.draw_text(win_size.width - console_size + 5, y, line, console_cfg)
+			}
+		}
+	}
+	app.ctx.draw_square_filled(win_size.width - 25, 5, 20, run_color)
 	app.ctx.end()
+}
+
+fn (mut app App) kill_prog() {
+	app.program_running = false
+	app.prog.signal_kill()
 }
 
 fn on_event(e &gg.Event, mut app App) {
@@ -119,8 +143,6 @@ fn on_event(e &gg.Event, mut app App) {
 						}[app.input_txt_nb] or { panic('input_id valid but not input_txt_nb') }.text = app.blocks[i].text[app.input_nb][app.input_txt_nb].text#[..-1]
 					}
 				}
-				.delete { // TODO change with button
-				}
 				else {
 					if app.input_id != -1 {
 						i := blocks.find_index(app.input_id, app)
@@ -134,22 +156,33 @@ fn on_event(e &gg.Event, mut app App) {
 				}
 			}
 		}
+		.mouse_scroll {
+			app.console_scroll += int(e.scroll_y)
+			len := app.p_output.split('\n').len
+			if app.console_scroll > len {
+				app.console_scroll = len
+			} else if app.console_scroll < 0 {
+				app.console_scroll = 0
+			}
+		}
 		.mouse_down {
 			app.input_id = -1
 			x := int(e.mouse_x)
 			y := int(e.mouse_y)
 			if app.check_clicks_menu(x, y) or { panic(err) } {
-			} else if app.show_output && x >= win_size.width-295 && x < win_size.width-275 && y >= 5 && y < 25 {
+			} else if app.show_output && x >= win_size.width - console_size + 5
+				&& x < win_size.width - console_size + 25 && y >= 5 && y < 25 {
 				app.show_output = false
-			} else if x >= win_size.width-25 && x < win_size.width-5 && y >= 5 && y < 25{
+			} else if x >= win_size.width - 25 && x < win_size.width - 5 && y >= 5 && y < 25 {
 				if app.show_output {
 					if app.program_running {
-						app.program_running = false
-						app.prog.signal_kill()
+						app.kill_prog()
 					} else {
+						app.p_output = ''
+						app.console_scroll = 0
 						app.program_running = true
 						v_file(app)
-						os.execute("v fmt -w output/output.v")
+						os.execute('v fmt -w output/output.v')
 						v_exe := os.find_abs_path_of_executable('v') or {
 							eprintln('Vely needs a v executable in your PATH. Please install V to see it in action.')
 							return
@@ -233,17 +266,17 @@ fn run_prog(mut app App) {
 		app.prog.close()
 		app.prog.wait()
 	}
-	
+
 	app.prog.set_args(['run', 'output/output.v'])
 	app.prog.set_redirect_stdio()
 	app.prog.run()
 	for app.prog.is_alive() {
 		// check if there is any input from the user (it does not block, if there is not):
 		if oline := app.prog.pipe_read(.stdout) {
-			print(oline)
+			app.p_output += oline
 		}
 		if eline := app.prog.pipe_read(.stderr) {
-			eprint(eline)
+			app.p_output += eline
 		}
 		time.sleep(1 * time.millisecond)
 	}
@@ -336,8 +369,8 @@ fn process(app App, id int) string {
 					i += 1
 				}
 				s += ' {'
-				if b.text[0][1].text.trim_space() == "main" {
-					s += "\nunbuffer_stdout() // useful for Vely, when running the program (added automatically by Vely)"
+				if b.text[0][1].text.trim_space() == 'main' {
+					s += '\nunbuffer_stdout() // useful for Vely, when running the program (added automatically by Vely)'
 				}
 				s += process_inner(app, id)
 				s += '\n}'

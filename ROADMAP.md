@@ -5,7 +5,7 @@ next steps:
 - [x] input text field
 - [x] detach groups
 - [x] v file generating
-- [ ] button to launch the program & compile
+- [x] button to launch the program & compile
 - [ ] camera pan
 - [ ] side menu for selecting options ? or better option 
 - [ ] working ButtonTs

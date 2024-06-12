@@ -10,12 +10,12 @@ pub const attach_decal_y = 5
 pub const attach_w = 14
 const end_block_w = 10
 pub const blocks_h = 27
-const text_cfg = gx.TextCfg{
+pub const text_cfg = gx.TextCfg{
 	color: gg.Color{17, 17, 27, 255}
 	size: 16
 	vertical_align: .middle
 }
-const input_cfg = gx.TextCfg{
+pub const input_cfg = gx.TextCfg{
 	color: gg.Color{88, 91, 112, 255}
 	size: 16
 	vertical_align: .middle
