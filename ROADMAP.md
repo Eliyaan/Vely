@@ -7,12 +7,16 @@ next steps:
 - [x] v file generating
 - [x] button to launch the program & compile
 - [ ] camera pan
-- [ ] side menu for selecting options ? or better option 
-- [ ] working ButtonTs
+- [ ] support for _, ", ', space, &, <, >, , , ., all the special chars
+- [ ] working ButtonTs 
+
+work on the blocks & help menu
+
+### Important thinking
+side menu for selecting options ? or better option  
 
 lots of safety measures (not able to input an already used name, types...)
 
-work on the blocks & help menu
 
 
 Big Steps:

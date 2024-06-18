@@ -80,6 +80,13 @@ fn on_frame(mut app App) {
 	// Draw
 	app.ctx.draw_rect_filled(0, 0, 365, 2000, menu_color)
 	app.ctx.begin()
+	app.show_blocks()
+	app.show_blocks_menu()
+	app.show_console()
+	app.ctx.end()
+}
+
+fn (mut app App) show_blocks() {
 	for mut block in app.blocks {
 		if block.id != app.clicked_block {
 			block.show(app.ctx)
@@ -88,7 +95,9 @@ fn on_frame(mut app App) {
 	if app.clicked_block != -1 {
 		app.blocks[blocks.find_index(app.clicked_block, app)].show(app.ctx)
 	}
-	app.show_blocks_menu()
+}
+
+fn (mut app App) show_console() {
 	win_size := gg.window_size()
 	run_color := if app.show_output {
 		if app.program_running {
@@ -115,7 +124,6 @@ fn on_frame(mut app App) {
 		}
 	}
 	app.ctx.draw_square_filled(win_size.width - 25, 5, 20, run_color)
-	app.ctx.end()
 }
 
 fn (mut app App) kill_prog() {
@@ -157,13 +165,7 @@ fn on_event(e &gg.Event, mut app App) {
 			}
 		}
 		.mouse_scroll {
-			app.console_scroll += int(e.scroll_y)
-			len := app.p_output.split('\n').len
-			if app.console_scroll > len {
-				app.console_scroll = len
-			} else if app.console_scroll < 0 {
-				app.console_scroll = 0
-			}
+			app.console_scroll(int(e.scroll_y))
 		}
 		.mouse_down {
 			app.input_id = -1
@@ -235,13 +237,29 @@ fn on_event(e &gg.Event, mut app App) {
 		}
 		else {}
 	}
+	app.handle_clicked_block(int(e.mouse_x), int(e.mouse_y))
+}
+
+fn (mut app App) console_scroll(scroll int) {
+	if app.show_output {
+		app.console_scroll += scroll
+		len := app.p_output.split('\n').len
+		if app.console_scroll > len {
+			app.console_scroll = len
+		} else if app.console_scroll < 0 {
+			app.console_scroll = 0
+		}
+	}
+}
+
+fn (mut app App) handle_clicked_block(mouse_x int, mouse_y int) {
 	if app.clicked_block != -1 {
 		id := blocks.find_index(app.clicked_block, app)
 		mut b := &app.blocks[id]
 		app.unpropagate_size(id)
 		b.detach(mut app)
-		b.x = int(e.mouse_x) - app.block_click_offset_x
-		b.y = int(e.mouse_y) - app.block_click_offset_y
+		b.x = mouse_x - app.block_click_offset_x
+		b.y = mouse_y - app.block_click_offset_y
 		b.check_block_is_snapping_here(app)
 		// propagate pos to children		
 		mut child_in_ids := [b.output]
