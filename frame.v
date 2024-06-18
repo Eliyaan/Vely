@@ -1,7 +1,6 @@
 import gg
 import blocks
 
-
 fn on_frame(mut app App) {
 	// Draw
 	app.ctx.draw_rect_filled(0, 0, 365, 2000, menu_color)

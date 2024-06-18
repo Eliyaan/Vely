@@ -38,7 +38,7 @@ mut:
 	prog                 os.Process
 	p_output             string
 	console_scroll       int
-	win_size gg.Size
+	win_size             gg.Size
 }
 
 enum Vari { // Variants
@@ -163,38 +163,17 @@ fn on_event(e &gg.Event, mut app App) {
 			} else if app.is_console_button_clicked(x, y) {
 				app.console_button_clicked()
 			} else {
-				block_click: for elem in app.blocks {
+				for elem in app.blocks {
 					if elem.is_clicked(x, y) {
-						mut decal_y := blocks.blocks_h
-						mut txt_click_detec := true
-						for nb, txts in elem.text {
-							if txt_click_detec {
-								mut decal_x := blocks.attach_w / 2
-								for nb_txt, txt in txts {
-									decal_x += (txt.text.len + 1) * blocks.text_size
-									if (x - elem.x) < decal_x && (y - elem.y) < decal_y
-										&& (y - elem.y) > decal_y - blocks.blocks_h {
-										match txt {
-											blocks.InputT {
-												app.input_id = elem.id
-												app.input_nb = nb
-												app.input_txt_nb = nb_txt
-												break block_click // only important thing is the text, not the block moving
-											}
-											else {}
-										}
-										txt_click_detec = false
-										break
-									}
-								}
-								decal_y += blocks.blocks_h + elem.size_in[nb] or { 0 }
-							}
+						if app.handle_click_block_element(elem, x, y) { // if click on elem of the block
+							break
+						} else { // then click is on the rest of the block
+							app.clicked_block = elem.id
+							app.set_block_offset(x, y, elem)
+							app.block_click_x = elem.x
+							app.block_click_y = elem.y
+							break
 						}
-						app.clicked_block = elem.id
-						app.set_block_offset(x, y, elem)
-						app.block_click_x = elem.x
-						app.block_click_y = elem.y
-						break
 					}
 				}
 			}
@@ -205,6 +184,35 @@ fn on_event(e &gg.Event, mut app App) {
 		else {}
 	}
 	app.handle_clicked_block(int(e.mouse_x), int(e.mouse_y))
+}
+
+fn (mut app App) handle_click_block_element(elem blocks.Blocks, x int, y int) bool {
+	mut decal_y := blocks.blocks_h
+	mut txt_click_detec := true
+	for nb, txts in elem.text {
+		if txt_click_detec {
+			mut decal_x := blocks.attach_w / 2
+			for nb_txt, txt in txts {
+				decal_x += (txt.text.len + 1) * blocks.text_size
+				if (x - elem.x) < decal_x && (y - elem.y) < decal_y
+					&& (y - elem.y) > decal_y - blocks.blocks_h {
+					match txt {
+						blocks.InputT {
+							app.input_id = elem.id
+							app.input_nb = nb
+							app.input_txt_nb = nb_txt
+							return true
+						}
+						else {}
+					}
+					txt_click_detec = false
+					break
+				}
+			}
+			decal_y += blocks.blocks_h + elem.size_in[nb] or { 0 }
+		}
+	}
+	return false
 }
 
 fn (mut app App) console_scroll(scroll int) {
