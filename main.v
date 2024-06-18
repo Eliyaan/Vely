@@ -38,6 +38,7 @@ mut:
 	prog                 os.Process
 	p_output             string
 	console_scroll       int
+	win_size gg.Size
 }
 
 enum Vari { // Variants
@@ -81,8 +82,13 @@ fn (mut app App) kill_prog() {
 	app.prog.signal_kill()
 }
 
+fn (mut app App) is_close_console_clicked(x int, y int) bool {
+	console_x := app.win_size.width - console_size
+	return app.show_output && x >= console_x + 5 && x < console_x + 25 && y >= 5 && y < 25
+}
+
 fn on_event(e &gg.Event, mut app App) {
-	win_size := gg.window_size()
+	app.win_size = gg.window_size()
 	match e.typ {
 		.key_down {
 			match e.key_code {
@@ -126,10 +132,9 @@ fn on_event(e &gg.Event, mut app App) {
 			x := int(e.mouse_x)
 			y := int(e.mouse_y)
 			if app.check_clicks_menu(x, y) or { panic(err) } {
-			} else if app.show_output && x >= win_size.width - console_size + 5
-				&& x < win_size.width - console_size + 25 && y >= 5 && y < 25 {
+			} else if app.is_close_console_clicked(x, y) {
 				app.show_output = false
-			} else if x >= win_size.width - 25 && x < win_size.width - 5 && y >= 5 && y < 25 {
+			} else if x >= app.win_size.width - 25 && x < app.win_size.width - 5 && y >= 5 && y < 25 {
 				if app.show_output {
 					if app.program_running {
 						app.kill_prog()

@@ -24,7 +24,6 @@ fn (mut app App) show_blocks() {
 }
 
 fn (mut app App) show_console() {
-	win_size := gg.window_size()
 	run_color := if app.show_output {
 		if app.program_running {
 			gg.Color{255, 0, 0, 255}
@@ -35,19 +34,19 @@ fn (mut app App) show_console() {
 		gg.Color{128, 128, 128, 255}
 	}
 	if app.show_output {
-		app.ctx.draw_rect_filled(win_size.width - console_size, 0, console_size, 2000,
+		app.ctx.draw_rect_filled(app.win_size.width - console_size, 0, console_size, 2000,
 			console_color)
-		app.ctx.draw_square_filled(win_size.width - console_size + 5, 5, 20, gg.Color{255, 0, 0, 255})
+		app.ctx.draw_square_filled(app.win_size.width - console_size + 5, 5, 20, gg.Color{255, 0, 0, 255})
 		split_out := app.p_output.split('\n')
 		if app.p_output.len > 1_000_000 {
 			app.kill_prog()
 		}
 		for n, line in split_out {
 			y := 40 + 18 * n - app.console_scroll * 18
-			if y < win_size.height + 16 && y > 30 {
-				app.ctx.draw_text(win_size.width - console_size + 5, y, line, console_cfg)
+			if y < app.win_size.height + 16 && y > 30 {
+				app.ctx.draw_text(app.win_size.width - console_size + 5, y, line, console_cfg)
 			}
 		}
 	}
-	app.ctx.draw_square_filled(win_size.width - 25, 5, 20, run_color)
+	app.ctx.draw_square_filled(app.win_size.width - 25, 5, 20, run_color)
 }
