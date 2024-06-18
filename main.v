@@ -188,9 +188,7 @@ fn on_event(e &gg.Event, mut app App) {
 
 fn (mut app App) handle_click_block_element(elem blocks.Blocks, x int, y int) bool {
 	mut decal_y := blocks.blocks_h
-	mut txt_click_detec := true
 	for nb, txts in elem.text {
-		if txt_click_detec {
 			mut decal_x := blocks.attach_w / 2
 			for nb_txt, txt in txts {
 				decal_x += (txt.text.len + 1) * blocks.text_size
@@ -203,14 +201,13 @@ fn (mut app App) handle_click_block_element(elem blocks.Blocks, x int, y int) bo
 							app.input_txt_nb = nb_txt
 							return true
 						}
-						else {}
+						else { // clicked on not clickable elem
+							return false	
+						}
 					}
-					txt_click_detec = false
-					break
 				}
 			}
 			decal_y += blocks.blocks_h + elem.size_in[nb] or { 0 }
-		}
 	}
 	return false
 }
