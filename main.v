@@ -82,9 +82,35 @@ fn (mut app App) kill_prog() {
 	app.prog.signal_kill()
 }
 
-fn (mut app App) is_close_console_clicked(x int, y int) bool {
+fn (app App) is_close_console_clicked(x int, y int) bool {
 	console_x := app.win_size.width - console_size
 	return app.show_output && x >= console_x + 5 && x < console_x + 25 && y >= 5 && y < 25
+}
+
+fn (app App) is_console_button_clicked(x int, y int) bool {
+	return x >= app.win_size.width - 25 && x < app.win_size.width - 5 && y >= 5 && y < 25
+}
+
+fn (mut app App) console_button_clicked() {
+	if app.show_output {
+		if app.program_running {
+			app.kill_prog()
+		} else {
+			app.p_output = ''
+			app.console_scroll = 0
+			app.program_running = true
+			v_file(app)
+			os.execute('v fmt -w output/output.v')
+			v_exe := os.find_abs_path_of_executable('v') or {
+				eprintln('Vely needs a v executable in your PATH. Please install V to see it in action.')
+				return
+			}
+			app.prog = os.new_process(v_exe)
+			spawn run_prog(mut app)
+		}
+	} else {
+		app.show_output = true
+	}
 }
 
 fn on_event(e &gg.Event, mut app App) {
@@ -134,26 +160,8 @@ fn on_event(e &gg.Event, mut app App) {
 			if app.check_clicks_menu(x, y) or { panic(err) } {
 			} else if app.is_close_console_clicked(x, y) {
 				app.show_output = false
-			} else if x >= app.win_size.width - 25 && x < app.win_size.width - 5 && y >= 5 && y < 25 {
-				if app.show_output {
-					if app.program_running {
-						app.kill_prog()
-					} else {
-						app.p_output = ''
-						app.console_scroll = 0
-						app.program_running = true
-						v_file(app)
-						os.execute('v fmt -w output/output.v')
-						v_exe := os.find_abs_path_of_executable('v') or {
-							eprintln('Vely needs a v executable in your PATH. Please install V to see it in action.')
-							return
-						}
-						app.prog = os.new_process(v_exe)
-						spawn run_prog(mut app)
-					}
-				} else {
-					app.show_output = true
-				}
+			} else if app.is_console_button_clicked(x, y) {
+				app.console_button_clicked()
 			} else {
 				block_click: for elem in app.blocks {
 					if elem.is_clicked(x, y) {
