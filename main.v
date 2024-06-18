@@ -114,6 +114,17 @@ fn (mut app App) console_button_clicked() {
 }
 
 fn on_event(e &gg.Event, mut app App) {
+	if app.input_id != -1 && e.char_code != 0 && e.char_code < 128 {
+		i := blocks.find_index(app.input_id, app)
+
+		if app.input_nb < 0 || app.input_nb >= app.blocks[i].text.len {
+			panic('app.input_nb not valid ${app.input_nb} / ${app.blocks[i].text.len}')
+		}
+		if app.input_txt_nb < 0 || app.input_txt_nb >= app.blocks[i].text[app.input_nb].len {
+			panic('app.input_txt_ not valid ${app.input_txt_nb} / ${app.blocks[i].text[app.input_nb].len}')
+		}
+		app.blocks[i].text[app.input_nb][app.input_txt_nb].text += u8(e.char_code).ascii_str()
+	}
 	app.win_size = gg.window_size()
 	match e.typ {
 		.key_down {
@@ -137,17 +148,7 @@ fn on_event(e &gg.Event, mut app App) {
 						app.blocks[i].text[app.input_nb][app.input_txt_nb].text = app.blocks[i].text[app.input_nb][app.input_txt_nb].text#[..-1]
 					}
 				}
-				else {
-					if app.input_id != -1 {
-						i := blocks.find_index(app.input_id, app)
-
-						app.blocks[i].text[app.input_nb] or {
-							panic('input_id valid but not input_nb')
-						}[app.input_txt_nb] or { panic('input_id valid but not input_txt_nb') }.text =
-							app.blocks[i].text[app.input_nb][app.input_txt_nb].text +
-							e.key_code.str()
-					}
-				}
+				else {}
 			}
 		}
 		.mouse_scroll {
