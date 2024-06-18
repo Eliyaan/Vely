@@ -163,19 +163,7 @@ fn on_event(e &gg.Event, mut app App) {
 			} else if app.is_console_button_clicked(x, y) {
 				app.console_button_clicked()
 			} else {
-				for elem in app.blocks {
-					if elem.is_clicked(x, y) {
-						if app.handle_click_block_element(elem, x, y) { // if click on elem of the block
-							break
-						} else { // then click is on the rest of the block
-							app.clicked_block = elem.id
-							app.set_block_offset(x, y, elem)
-							app.block_click_x = elem.x
-							app.block_click_y = elem.y
-							break
-						}
-					}
-				}
+				app.handle_blocks_click(x, y)
 			}
 		}
 		.mouse_up {
@@ -184,6 +172,22 @@ fn on_event(e &gg.Event, mut app App) {
 		else {}
 	}
 	app.handle_clicked_block(int(e.mouse_x), int(e.mouse_y))
+}
+
+fn (mut app App) handle_blocks_click(x int, y int) {
+	for elem in app.blocks {
+		if elem.is_clicked(x, y) {
+			if app.handle_click_block_element(elem, x, y) { // if click on elem of the block
+				break
+			} else { // then click is on the rest of the block
+				app.clicked_block = elem.id
+				app.set_block_offset(x, y, elem)
+				app.block_click_x = elem.x
+				app.block_click_y = elem.y
+				break
+			}
+		}
+	}
 }
 
 fn (mut app App) handle_click_block_element(elem blocks.Blocks, x int, y int) bool {
