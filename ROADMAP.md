@@ -7,7 +7,7 @@ next steps:
 - [x] v file generating
 - [x] button to launch the program & compile
 - [ ] camera pan
-- [ ] support for _, ", ', space, &, <, >, , , ., all the special chars
+- [x] support for _, ", ', space, &, <, >, , , ., all the special chars
 - [ ] working ButtonTs 
 
 work on the blocks & help menu

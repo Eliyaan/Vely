@@ -389,9 +389,9 @@ fn process(app App, id int) string {
 					}
 					.println {
 						s += '\n'
-						s += 'println("'
+						s += 'println('
 						s += b.text[0][1].text
-						s += '")'
+						s += ')'
 						s += process(app, b.output)
 					}
 					else {
@@ -403,9 +403,9 @@ fn process(app App, id int) string {
 				match Vari.from(b.variant) or { panic('variant not handled ${b.variant}') } {
 					.panic {
 						s += '\n'
-						s += 'panic("'
+						s += 'panic('
 						s += b.text[0][1].text
-						s += '")'
+						s += ')'
 					}
 					.@return {
 						s += '\nreturn'
