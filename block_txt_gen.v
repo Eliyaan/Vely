@@ -1,3 +1,4 @@
+import blocks
 
 fn process(app App, id int) string {
 	mut s := ''
@@ -85,14 +86,29 @@ fn process(app App, id int) string {
 							s += 'mut '
 						}
 						s += b.text[0][3].text
-						s += ':= '
+						s += ' := '
 						s += b.text[0][5].text
+						s += process(app, b.output)
+					}
+					.assign {
+						s += '\n'
+						s += b.text[0][0].text
+						s += ' = '
+						s += b.text[0][2].text
 						s += process(app, b.output)
 					}
 					.println {
 						s += '\n'
 						s += 'println('
 						s += b.text[0][1].text
+						s += ')'
+						s += process(app, b.output)
+					}
+					.call {
+						s += '\n'
+						s += b.text[0][0].text
+						s += '('
+						// TODO: handle args
 						s += ')'
 						s += process(app, b.output)
 					}

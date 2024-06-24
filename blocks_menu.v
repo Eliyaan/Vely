@@ -39,7 +39,13 @@ const panic = init_block(blocks.Input{-1, int(Vari.panic), 30, 50, [], -1, -1, [
 const declare = init_block(blocks.InputOutput{-1, int(Vari.declare), 30, 10, [], [], -1, -1, [], [], blocks.blocks_h, []}) or {
 	panic(err)
 }
-const println = init_block(blocks.InputOutput{-1, int(Vari.println), 30, 50, [], [], -1, -1, [], [], blocks.blocks_h, []}) or {
+const assign = init_block(blocks.InputOutput{-1, int(Vari.assign), 30, 50, [], [], -1, -1, [], [], blocks.blocks_h, []}) or {
+	panic(err)
+}
+const println = init_block(blocks.InputOutput{-1, int(Vari.println), 30, 90, [], [], -1, -1, [], [], blocks.blocks_h, []}) or {
+	panic(err)
+}
+const call = init_block(blocks.InputOutput{-1, int(Vari.call), 30, 130, [], [], -1, -1, [], [], blocks.blocks_h, []}) or {
 	panic(err)
 }
 
@@ -67,7 +73,9 @@ fn (app App) show_blocks_menu() {
 		}
 		.i_o {
 			declare.show(app.ctx)
+			assign.show(app.ctx)
 			println.show(app.ctx)
+			call.show(app.ctx)
 		}
 		.input {
 			@return.show(app.ctx)
@@ -143,9 +151,17 @@ fn (mut app App) check_clicks_menu(x int, y int) !bool {
 						app.set_block_offset(x, y, declare)
 						app.blocks << init_block(blocks.InputOutput{id, int(Vari.declare), 30, 10, [], [], -1, -1, [], [], blocks.blocks_h, []})!
 					}
+					assign.is_clicked(x, y) {
+						app.set_block_offset(x, y, assign)
+						app.blocks << init_block(blocks.InputOutput{id, int(Vari.assign), 30, 10, [], [], -1, -1, [], [], blocks.blocks_h, []})!
+					}
 					println.is_clicked(x, y) {
 						app.set_block_offset(x, y, println)
 						app.blocks << init_block(blocks.InputOutput{id, int(Vari.println), 30, 10, [], [], -1, -1, [], [], blocks.blocks_h, []})!
+					}
+					call.is_clicked(x, y) {
+						app.set_block_offset(x, y, call)
+						app.blocks << init_block(blocks.InputOutput{id, int(Vari.call), 30, 10, [], [], -1, -1, [], [], blocks.blocks_h, []})!
 					}
 					else {
 						app.max_id -= 1

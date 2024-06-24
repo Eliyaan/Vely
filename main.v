@@ -56,7 +56,9 @@ enum Vari { // Variants
 	panic
 	// Input outputs
 	declare
+	assign
 	println
+	call
 }
 
 fn main() {
