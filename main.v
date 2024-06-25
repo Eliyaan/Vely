@@ -101,6 +101,9 @@ fn (mut app App) console_button_clicked() {
 			app.p_output = ''
 			app.console_scroll = 0
 			app.program_running = true
+			if !os.exists("output") {
+				os.mkdir("output", os.MkdirParams{}) or {panic(err)}
+			}
 			v_file(app)
 			os.execute('v fmt -w output/output.v')
 			v_exe := os.find_abs_path_of_executable('v') or {
