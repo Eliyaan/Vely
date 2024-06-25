@@ -58,6 +58,7 @@ enum MenuMode {
 }
 
 fn (app App) show_blocks_menu() {
+	app.ctx.draw_rect_filled(0, 0, menu_width, 2000, menu_color)
 	app.ctx.draw_square_filled(0, 0, 20, blocks.func_color)
 	app.ctx.draw_square_filled(0, 20, 20, blocks.con_color)
 	app.ctx.draw_square_filled(0, 40, 20, blocks.io_color)

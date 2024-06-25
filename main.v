@@ -170,7 +170,15 @@ fn on_event(e &gg.Event, mut app App) {
 			}
 		}
 		.mouse_up {
-			app.place_snap(int(e.mouse_x), int(e.mouse_y))
+			if app.clicked_block != -1 {
+				if e.mouse_x > menu_width {
+					app.place_snap(int(e.mouse_x), int(e.mouse_y))
+				} else {
+					i := blocks.find_index(app.clicked_block, app)
+					app.blocks.delete(i)
+				}
+				app.clicked_block = -1
+			}
 		}
 		else {}
 	}
@@ -299,7 +307,6 @@ fn v_file(app App) {
 	os.write_file('output/output.v', file) or { panic(err) }
 }
 
-
 fn process_inner(app App, id int) string {
 	b := app.blocks[blocks.find_index(id, app)]
 	mut s := ''
@@ -310,24 +317,21 @@ fn process_inner(app App, id int) string {
 }
 
 fn (mut app App) place_snap(x int, y int) {
-	if app.clicked_block != -1 {
-		i := blocks.find_index(app.clicked_block, app)
-		app.blocks[i].x = x - app.block_click_offset_x
-		app.blocks[i].y = y - app.block_click_offset_y
-		if app.blocks[i] !is blocks.Function {
-			for mut other in app.blocks {
-				if other !is blocks.Input {
-					snap_attach_i := app.blocks[i].is_snapping(other)
-					if snap_attach_i != -1 { // snapped
-						app.snap_update_id_y(i, mut other, snap_attach_i)
-						app.propagate_size(i)
-						break
-					}
+	i := blocks.find_index(app.clicked_block, app)
+	app.blocks[i].x = x - app.block_click_offset_x
+	app.blocks[i].y = y - app.block_click_offset_y
+	if app.blocks[i] !is blocks.Function {
+		for mut other in app.blocks {
+			if other !is blocks.Input {
+				snap_attach_i := app.blocks[i].is_snapping(other)
+				if snap_attach_i != -1 { // snapped
+					app.snap_update_id_y(i, mut other, snap_attach_i)
+					app.propagate_size(i)
+					break
 				}
 			}
 		}
 	}
-	app.clicked_block = -1
 }
 
 fn (mut app App) unpropagate_size(block_i int) {

@@ -1,12 +1,16 @@
 import gg
 import blocks
 
+const menu_width = 365
+
 fn on_frame(mut app App) {
 	// Draw
-	app.ctx.draw_rect_filled(0, 0, 365, 2000, menu_color)
 	app.ctx.begin()
 	app.show_blocks()
 	app.show_blocks_menu()
+	if app.clicked_block != -1 {
+		app.blocks[blocks.find_index(app.clicked_block, app)].show(app.ctx)
+	}
 	app.show_console()
 	app.ctx.end()
 }
@@ -16,9 +20,6 @@ fn (mut app App) show_blocks() {
 		if block.id != app.clicked_block {
 			block.show(app.ctx)
 		}
-	}
-	if app.clicked_block != -1 {
-		app.blocks[blocks.find_index(app.clicked_block, app)].show(app.ctx)
 	}
 }
 

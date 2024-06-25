@@ -109,8 +109,8 @@ fn init_block(b blocks.Blocks) !blocks.Blocks {
 				}
 				.assign {
 					[
-						[blocks.Text(blocks.InputT{'a'}),
-							blocks.JustT{'='}, blocks.InputT{'0'}],
+						[blocks.Text(blocks.InputT{'a'}), blocks.JustT{'='},
+							blocks.InputT{'0'}],
 					]
 				}
 				.println {
@@ -121,7 +121,7 @@ fn init_block(b blocks.Blocks) !blocks.Blocks {
 				}
 				.call {
 					[
-						[blocks.Text(blocks.InputT{"funct"}), blocks.JustT{'('}, 
+						[blocks.Text(blocks.InputT{'funct'}), blocks.JustT{'('},
 							blocks.ButtonT{'(+)'}, blocks.JustT{')'}],
 					]
 				}
