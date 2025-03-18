@@ -6,20 +6,20 @@ pub const loop_color = gg.Color{166, 227, 161, 255}
 
 pub struct Loop {
 pub:
-	id      int
+	id      int = -1
 	variant int
 pub mut:
 	x             int
 	y             int
 	text          [][]Text
 	attachs_rel_y []int
-	input         int
-	output        int
-	inner         []int
-	condition     int      // need to change that (remplacer par les menus déroulants)
+	input         int   = -1
+	output        int   = -1
+	inner         []int = [-1]
+	condition     int   = -1 // need to change that (remplacer par les menus déroulants)
 	params        []Params // this also i think
 	base_size     int
-	size_in       []int
+	size_in       []int = [0]
 }
 
 pub fn (mut l Loop) remove_id(id_remove int) {
@@ -42,24 +42,24 @@ pub fn (loop Loop) show(ctx gg.Context) {
 	size_txt := int(f32(tmp_text_size) * text_size) - (end_block_w + attach_w + attach_w + attach_w)
 
 	expand_h := loop.size_in[0] + blocks_h + 2 * attach_decal_y
-	ctx.draw_rect_filled(loop.x, loop.y, attach_w, expand_h + blocks_h, blocks.loop_color)
+	ctx.draw_rect_filled(loop.x, loop.y, attach_w, expand_h + blocks_h, loop_color)
 	y := loop.y + expand_h
 
 	// Attach extern
 	ctx.draw_rect_filled(loop.x + attach_w, loop.y + attach_decal_y, attach_w, blocks_h - attach_decal_y,
-		blocks.loop_color)
-	ctx.draw_rect_filled(loop.x + attach_w, y, attach_w, blocks_h + attach_decal_y, blocks.loop_color)
+		loop_color)
+	ctx.draw_rect_filled(loop.x + attach_w, y, attach_w, blocks_h + attach_decal_y, loop_color)
 
 	// Attach intern
 	ctx.draw_rect_filled(loop.x + attach_w + attach_w, loop.y, attach_w, blocks_h + attach_decal_y,
-		blocks.loop_color)
-	ctx.draw_rect_filled(loop.x + attach_w + attach_w, y, attach_w, blocks_h, blocks.loop_color)
+		loop_color)
+	ctx.draw_rect_filled(loop.x + attach_w + attach_w, y, attach_w, blocks_h, loop_color)
 
 	// END
 	ctx.draw_rect_filled(loop.x + attach_w + attach_w + attach_w, loop.y, end_block_w + size_txt +
-		attach_w / 2, blocks_h, blocks.loop_color)
+		attach_w / 2, blocks_h, loop_color)
 	ctx.draw_rect_filled(loop.x + attach_w + attach_w + attach_w, y, end_block_w + size_txt +
-		attach_w / 2, blocks_h, blocks.loop_color)
+		attach_w / 2, blocks_h, loop_color)
 
 	mut decal := 0
 	for txt in loop.text[0] {
@@ -67,7 +67,11 @@ pub fn (loop Loop) show(ctx gg.Context) {
 			InputT { input_cfg }
 			else { text_cfg }
 		}
-		ctx.draw_text(loop.x + attach_w / 2 + decal, loop.y + blocks_h / 2, txt.text,
+		y_txt := loop.y + blocks_h / 2
+		if txt is InputT {
+			ctx.draw_rect_filled(loop.x + attach_w / 2 + decal - input_margin, y_txt - cfg.size / 2, txt.text.len * text_size + input_margin * 2, cfg.size, input_color)
+		}
+		ctx.draw_text(loop.x + attach_w / 2 + decal, y_txt, txt.text,
 			cfg)
 		decal += (txt.text.len + 1) * text_size
 	}

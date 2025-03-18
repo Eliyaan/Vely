@@ -2,23 +2,23 @@ module blocks
 
 import gg
 
-pub const io_color = gg.Color{250, 179, 135, 255}
+pub const io_color = gg.Color{250, 179, 135, 255} // mocha peach
 
 pub struct InputOutput {
 pub:
-	id      int
+	id      int = -1
 	variant int
 pub mut:
 	x             int
 	y             int
 	text          [][]Text
 	attachs_rel_y []int
-	input         int
-	output        int
+	input         int = -1
+	output        int = -1
 	inner         []int
 	params        []Params
 	base_size     int
-	size_in       []int
+	size_in       []int // not used, only for interface
 }
 
 pub fn (mut i_o InputOutput) remove_id(id_remove int) {
@@ -35,19 +35,22 @@ pub fn (in_out InputOutput) show(ctx gg.Context) {
 		tmp_text_size += txt.text.len + 1 // 1 is for the space between texts
 	}
 	size_txt := int(f32(tmp_text_size) * text_size) - (attach_w + attach_w + end_block_w)
-	ctx.draw_rect_filled(in_out.x, in_out.y, attach_w, blocks_h, blocks.io_color)
+	ctx.draw_rect_filled(in_out.x, in_out.y, attach_w, blocks_h, io_color)
 	ctx.draw_rect_filled(in_out.x + attach_w, in_out.y + attach_decal_y, attach_w, blocks_h,
-		blocks.io_color)
+		io_color)
 	ctx.draw_rect_filled(in_out.x + (attach_w + attach_w), in_out.y, end_block_w + size_txt +
-		attach_w / 2, blocks_h, blocks.io_color)
+		attach_w / 2, blocks_h, io_color)
 	mut decal := 0
 	for txt in in_out.text[0] {
 		cfg := match txt {
 			InputT { input_cfg }
 			else { text_cfg }
 		}
-		ctx.draw_text(in_out.x + attach_w / 2 + decal, in_out.y + blocks_h / 2, txt.text,
-			cfg)
+		y := in_out.y + blocks_h / 2
+		if txt is InputT {
+			ctx.draw_rect_filled(in_out.x + attach_w / 2 + decal - input_margin, y - cfg.size / 2, txt.text.len * text_size + input_margin * 2, cfg.size, input_color)
+		}
+		ctx.draw_text(in_out.x + attach_w / 2 + decal, y, txt.text, cfg)
 		decal += (txt.text.len + 1) * text_size
 	}
 }

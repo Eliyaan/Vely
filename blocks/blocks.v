@@ -10,14 +10,16 @@ pub const attach_decal_y = 5
 pub const attach_w = 14
 const end_block_w = 10
 pub const blocks_h = 27
+pub const input_margin = 3
+pub const input_color = gg.Color{235, 244, 254, 255} 
 pub const text_cfg = gx.TextCfg{
-	color: gg.Color{17, 17, 27, 255}
-	size: 16
+	color:          gg.Color{17, 17, 27, 255}
+	size:           16
 	vertical_align: .middle
 }
 pub const input_cfg = gx.TextCfg{
-	color: gg.Color{88, 91, 112, 255}
-	size: 16
+	color:          gg.Color{30, 30, 46, 255}
+	size:           16
 	vertical_align: .middle
 }
 pub const font_path = os.resource_abs_path('0xProtoNerdFontMono-Regular.ttf')
@@ -119,8 +121,8 @@ pub fn (block Blocks) is_snapping(other Blocks) int {
 
 fn snap_check_dist(block Blocks, other Blocks, attach int) bool {
 	y_dist := block.y - (attach + other.y)
-	x_dist := block.x - (other.x + blocks.attach_w)
-	return y_dist * y_dist + x_dist * x_dist < blocks.snap_dist
+	x_dist := block.x - (other.x + attach_w)
+	return y_dist * y_dist + x_dist * x_dist < snap_dist
 }
 
 pub fn (mut b Blocks) check_block_is_snapping_here(app App) {
@@ -132,7 +134,7 @@ pub fn (mut b Blocks) check_block_is_snapping_here(app App) {
 					if snap_i == other.attachs_rel_y.len - 1 && other !is Function {
 						b.x = other.x
 					} else {
-						b.x = other.x + blocks.attach_w
+						b.x = other.x + attach_w
 					}
 					mut decal := 0
 					for decal_y in other.size_in[..snap_i] {

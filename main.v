@@ -6,6 +6,13 @@ import gx
 import os
 import time
 
+// TODO: checkboxes: clickable (like for mut in declaration)
+// TODO: the (+) to be able to add args
+// TODO: terminal size changing
+// TODO: text cursor & indicator of selected input box
+// TODO: draw order: last moved and click order according to the draw order
+// ?TODO: temporary change of the children size of the snapped against block (like scratch does)
+
 const menu_width = 365
 const win_width = 1300
 const win_height = 700
@@ -13,60 +20,84 @@ const bg_color = gg.Color{166, 173, 200, 255}
 const menu_color = gg.Color{127, 132, 156, 255}
 const console_color = gg.Color{49, 50, 68, 255}
 const console_cfg = gx.TextCfg{
-	size: 16
+	size:  16
 	color: gg.Color{205, 214, 244, 255}
 }
 const console_size = 500
 
 const empty_contenant_h = blocks.blocks_h * 2 + blocks.attach_decal_y * 2
-// TODO: better way to handle this mess
-const fn_declare = init_block(blocks.Function{-1, int(Vari.function), 30, 10, [], -1, -1, [
-	-1,
-], [], [], [], [], empty_contenant_h, [
-	0,
-]}) or { panic(err) }
-const condition = init_block(blocks.Condition{-1, int(Vari.condition), 30, 10, [], [], -1, -1, [
-	-1,
-], [], empty_contenant_h, [
-	0,
-]}) or { panic(err) }
-const @match = init_block(blocks.Condition{-1, int(Vari.@match), 30, 80, [], [], -1, -1, [
-	-1,
-], [], empty_contenant_h * 2 - blocks.blocks_h, [
-	0,
-	0,
-]}) or { panic(err) }
-const for_range = init_block(blocks.Loop{-1, int(Vari.for_range), 30, 10, [], [], -1, -1, [
-	-1,
-], -1, [], empty_contenant_h, [
-	0,
-]}) or { panic(err) }
-const for_c = init_block(blocks.Loop{-1, int(Vari.for_c), 30, 80, [], [], -1, -1, [-1], -1, [], empty_contenant_h, [
-	0,
-]}) or { panic(err) }
-const for_bool = init_block(blocks.Loop{-1, int(Vari.for_bool), 30, 160, [], [], -1, -1, [
-	-1,
-], -1, [], empty_contenant_h, [
-	0,
-]}) or { panic(err) }
-const @return = init_block(blocks.Input{-1, int(Vari.@return), 30, 10, [], -1, -1, [], [], [], blocks.blocks_h, []}) or {
-	panic(err)
-}
-const panic = init_block(blocks.Input{-1, int(Vari.panic), 30, 50, [], -1, -1, [], [], [], blocks.blocks_h, []}) or {
-	panic(err)
-}
-const declare = init_block(blocks.InputOutput{-1, int(Vari.declare), 30, 10, [], [], -1, -1, [], [], blocks.blocks_h, []}) or {
-	panic(err)
-}
-const assign = init_block(blocks.InputOutput{-1, int(Vari.assign), 30, 50, [], [], -1, -1, [], [], blocks.blocks_h, []}) or {
-	panic(err)
-}
-const println = init_block(blocks.InputOutput{-1, int(Vari.println), 30, 90, [], [], -1, -1, [], [], blocks.blocks_h, []}) or {
-	panic(err)
-}
-const call = init_block(blocks.InputOutput{-1, int(Vari.call), 30, 130, [], [], -1, -1, [], [], blocks.blocks_h, []}) or {
-	panic(err)
-}
+const fn_declare = init_block(blocks.Function{
+	variant:   int(Vari.function)
+	x:         30
+	y:         10
+	base_size: empty_contenant_h
+}) or { panic(err) }
+const condition = init_block(blocks.Condition{
+	variant:   int(Vari.condition)
+	x:         30
+	y:         10
+	base_size: empty_contenant_h
+}) or { panic(err) }
+const @match = init_block(blocks.Condition{
+	variant:   int(Vari.@match)
+	x:         30
+	y:         80
+	base_size: empty_contenant_h * 2 - blocks.blocks_h
+}) or { panic(err) }
+const for_range = init_block(blocks.Loop{
+	variant:   int(Vari.for_range)
+	x:         30
+	y:         10
+	base_size: empty_contenant_h
+}) or { panic(err) }
+const for_c = init_block(blocks.Loop{
+	variant:   int(Vari.for_c)
+	x:         30
+	y:         80
+	base_size: empty_contenant_h
+}) or { panic(err) }
+const for_bool = init_block(blocks.Loop{
+	variant:   int(Vari.for_bool)
+	x:         30
+	y:         160
+	base_size: empty_contenant_h
+}) or { panic(err) }
+const @return = init_block(blocks.Input{
+	variant:   int(Vari.@return)
+	x:         30
+	y:         10
+	base_size: blocks.blocks_h
+}) or { panic(err) }
+const panic = init_block(blocks.Input{
+	variant:   int(Vari.panic)
+	x:         30
+	y:         50
+	base_size: blocks.blocks_h
+}) or { panic(err) }
+const declare = init_block(blocks.InputOutput{
+	variant:   int(Vari.declare)
+	x:         30
+	y:         10
+	base_size: blocks.blocks_h
+}) or { panic(err) }
+const assign = init_block(blocks.InputOutput{
+	variant:   int(Vari.assign)
+	x:         30
+	y:         50
+	base_size: blocks.blocks_h
+}) or { panic(err) }
+const println = init_block(blocks.InputOutput{
+	variant:   int(Vari.println)
+	x:         30
+	y:         90
+	base_size: blocks.blocks_h
+}) or { panic(err) }
+const call = init_block(blocks.InputOutput{
+	variant:   int(Vari.call)
+	x:         30
+	y:         130
+	base_size: blocks.blocks_h
+}) or { panic(err) }
 
 enum MenuMode {
 	function
@@ -80,7 +111,7 @@ enum MenuMode {
 struct App {
 mut:
 	ctx                  &gg.Context = unsafe { nil }
-	square_size          int = 10
+	square_size          int         = 10
 	blocks               []blocks.Blocks
 	max_id               int
 	menu_mode            MenuMode
@@ -125,16 +156,16 @@ enum Vari { // Variants
 fn main() {
 	mut app := App{}
 	app.ctx = gg.new_context(
-		width: win_width
-		height: win_height
+		width:         win_width
+		height:        win_height
 		create_window: true
-		window_title: '- Application -'
-		user_data: &app
-		bg_color: bg_color
-		frame_fn: on_frame
-		event_fn: on_event
-		sample_count: 2
-		font_path: blocks.font_path
+		window_title:  '- Application -'
+		user_data:     &app
+		bg_color:      bg_color
+		frame_fn:      on_frame
+		event_fn:      on_event
+		sample_count:  2
+		font_path:     blocks.font_path
 	)
 
 	app.ctx.run()
@@ -331,8 +362,8 @@ fn (mut app App) console_button_clicked() {
 			app.p_output = ''
 			app.console_scroll = 0
 			app.program_running = true
-			if !os.exists("output") {
-				os.mkdir("output", os.MkdirParams{}) or {panic(err)}
+			if !os.exists('output') {
+				os.mkdir('output', os.MkdirParams{}) or { panic(err) }
 			}
 			v_file(app)
 			os.execute('v fmt -w output/output.v')
