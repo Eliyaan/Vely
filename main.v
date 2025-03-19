@@ -304,7 +304,7 @@ fn run_prog(mut app App) {
 		app.prog.wait()
 	}
 
-	app.prog.set_args(['run', 'output/output.v'])
+	app.prog.set_args(['-g', 'run', 'output/output.v'])
 	app.prog.set_redirect_stdio()
 	app.prog.run()
 	for app.prog.is_alive() {

@@ -90,7 +90,7 @@ pub fn (con Condition) show(ctx gg.Context) {
 				InputT { input_cfg }
 				else { text_cfg }
 			}
-			y_txt := con.y + blocks_h / 2
+			y_txt := y_pos + blocks_h / 2
 			if txt is InputT {
 				ctx.draw_rect_filled(con.x + attach_w / 2 + decal - input_margin, y_txt - cfg.size / 2, txt.text.len * text_size + input_margin * 2, cfg.size, input_color)
 			}
