@@ -85,15 +85,15 @@ pub fn (loop Loop) is_clicked(x int, y int) bool {
 		}
 		size_txt := int(f32(tmp_text_size) * text_size) - (end_block_w + attach_w + attach_w +
 			attach_w)
-		expand_h := (1 + loop.size_in[0]) * blocks_h + 2 * attach_decal_y
-		if x < loop.x + attach_w + attach_w + attach_w + end_block_w + size_txt + attach_w / 2
-			&& y < loop.y + blocks_h {
+		expand_h := loop.size_in[0] + blocks_h + 2 * attach_decal_y
+		if x <= loop.x + attach_w + attach_w + attach_w + end_block_w + size_txt + attach_w / 2
+			&& y <= loop.y + blocks_h {
 			return true
-		} else if x < loop.x + attach_w && y < loop.y + expand_h + blocks_h {
+		} else if x <= loop.x + attach_w && y <= loop.y + expand_h + blocks_h {
 			return true
-		} else if x > loop.x + attach_w && y > loop.y + expand_h
-			&& x < loop.x + attach_w + attach_w + attach_w + end_block_w + size_txt + attach_w / 2
-			&& y < loop.y + expand_h + blocks_h {
+		} else if x >= loop.x + attach_w && y >= loop.y + expand_h
+			&& x <= loop.x + attach_w + attach_w + attach_w + end_block_w + size_txt + attach_w / 2
+			&& y <= loop.y + expand_h + blocks_h {
 			return true
 		}
 	}

@@ -7,11 +7,12 @@ import os
 import time
 
 // TODO: checkboxes: clickable (like for mut in declaration)
-// TODO: the (+) to be able to add args
-// TODO: terminal size changing
+// TODO: the (+) to be able to add args (ButtonT irrc)
+// TODO: terminal width changing
 // TODO: text cursor & indicator of selected input box
-// TODO: draw order: last moved and click order according to the draw order
 // ?TODO: temporary change of the children size of the snapped against block (like scratch does)
+// TODO: different block text modes (pseudocode and V's syntax)
+// TODO: colorschemes, font size
 
 const menu_width = 365
 const win_width = 1300
@@ -113,6 +114,7 @@ mut:
 	ctx                  &gg.Context = unsafe { nil }
 	square_size          int         = 10
 	blocks               []blocks.Blocks
+	draw_order	     []int
 	max_id               int
 	menu_mode            MenuMode
 	clicked_block        int = -1
@@ -232,6 +234,7 @@ fn on_event(e &gg.Event, mut app App) {
 				} else {
 					i := blocks.find_index(app.clicked_block, app)
 					app.blocks.delete(i)
+					app.draw_order.delete(app.draw_order.index(app.clicked_block))
 				}
 				app.clicked_block = -1
 			}
@@ -256,9 +259,9 @@ fn on_frame(mut app App) {
 // DRAW
 
 fn (mut app App) show_blocks() {
-	for mut block in app.blocks {
-		if block.id != app.clicked_block {
-			block.show(app.ctx)
+	for i in app.draw_order {
+		if i != app.clicked_block {
+			app.blocks[blocks.find_index(i, app)].show(app.ctx)
 		}
 	}
 }
@@ -714,7 +717,8 @@ fn process_id_to_txt(app App, id int) string {
 }
 
 fn (mut app App) handle_blocks_click(x int, y int) {
-	for elem in app.blocks {
+	for i := app.draw_order.len - 1; i >= 0; i-- {
+		elem := app.blocks[blocks.find_index(app.draw_order[i], app)]
 		if elem.is_clicked(x, y) {
 			if app.handle_click_block_element(elem, x, y) { // if click on elem of the block
 				break
@@ -762,9 +766,11 @@ fn (mut app App) handle_click_block_element(elem blocks.Blocks, x int, y int) bo
 
 fn (mut app App) handle_clicked_block(mouse_x int, mouse_y int) {
 	if app.clicked_block != -1 {
-		id := blocks.find_index(app.clicked_block, app)
-		mut b := &app.blocks[id]
-		app.unpropagate_size(id)
+		idx := blocks.find_index(app.clicked_block, app)
+		mut b := &app.blocks[idx]
+		app.draw_order.delete(app.draw_order.index(app.clicked_block))
+		app.draw_order << app.clicked_block
+		app.unpropagate_size(idx)
 		b.detach(mut app)
 		b.x = mouse_x - app.block_click_offset_x
 		b.y = mouse_y - app.block_click_offset_y
@@ -775,6 +781,8 @@ fn (mut app App) handle_clicked_block(mouse_x int, mouse_y int) {
 		for child_in_ids.len > 0 {
 			id_child := child_in_ids.pop()
 			if id_child != -1 {
+				app.draw_order.delete(app.draw_order.index(id_child))
+				app.draw_order << id_child
 				i := blocks.find_index(id_child, app)
 				app.blocks[i].x += b.x - app.block_click_x
 				app.blocks[i].y += b.y - app.block_click_y
@@ -1098,6 +1106,7 @@ fn (mut app App) check_clicks_menu(x int, y int) !bool {
 	}
 	if app.max_id == id {
 		app.clicked_block = app.max_id
+		app.draw_order << id
 		return true
 	}
 	return false
