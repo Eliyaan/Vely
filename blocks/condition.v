@@ -37,7 +37,7 @@ pub fn (c Condition) snap_i_is_body(snap_i int) bool {
 	return true
 }
 
-pub fn (con Condition) show(ctx gg.Context) {
+pub fn (con Condition) show(ctx gg.Context, input_id int, input_nb int, input_txt_nb int) {
 	mut tmp_text_size := 0
 	for txt in con.text[0] {
 		tmp_text_size += txt.text.len + 1 // 1 is for the space between texts
@@ -85,28 +85,38 @@ pub fn (con Condition) show(ctx gg.Context) {
 		attach_w / 2, blocks_h, con_color)
 	for nb, y_pos in pos {
 		decal = 0
-		for txt in con.text[nb + 1] {
+		for nb_txt, txt in con.text[nb + 1] {
 			cfg := match txt {
 				InputT { input_cfg }
 				else { text_cfg }
 			}
 			y_txt := y_pos + blocks_h / 2
 			if txt is InputT {
-				ctx.draw_rect_filled(con.x + attach_w / 2 + decal - input_margin, y_txt - cfg.size / 2, txt.text.len * text_size + input_margin * 2, cfg.size, input_color)
+				color := if input_id == con.id && input_nb == nb + 1 && input_txt_nb == nb_txt {
+					input_selected_color
+				} else {
+					input_color
+				}
+				ctx.draw_rect_filled(con.x + attach_w / 2 + decal - input_margin, y_txt - cfg.size / 2, txt.text.len * text_size + input_margin * 2, cfg.size, color)
 			}
 			ctx.draw_text(con.x + attach_w / 2 + decal, y_txt, txt.text, cfg)
 			decal += (txt.text.len + 1) * text_size
 		}
 	}
 	decal = 0
-	for txt in con.text[0] {
+	for nb_txt, txt in con.text[0] {
 		cfg := match txt {
 			InputT { input_cfg }
 			else { text_cfg }
 		}
 		y_txt := con.y + blocks_h / 2
 		if txt is InputT {
-			ctx.draw_rect_filled(con.x + attach_w / 2 + decal - input_margin, y_txt - cfg.size / 2, txt.text.len * text_size + input_margin * 2, cfg.size, input_color)
+			color := if input_id == con.id && input_nb == 0 && input_txt_nb == nb_txt {
+				input_selected_color
+			} else {
+				input_color
+			}
+			ctx.draw_rect_filled(con.x + attach_w / 2 + decal - input_margin, y_txt - cfg.size / 2, txt.text.len * text_size + input_margin * 2, cfg.size, color)
 		}
 		ctx.draw_text(con.x + attach_w / 2 + decal, y_txt, txt.text, cfg)
 		decal += (txt.text.len + 1) * text_size

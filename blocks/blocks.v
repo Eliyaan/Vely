@@ -12,6 +12,7 @@ const end_block_w = 10
 pub const blocks_h = 27
 pub const input_margin = 3
 pub const input_color = gg.Color{235, 244, 254, 255} 
+pub const input_selected_color = gg.Color{157, 240, 255, 255}
 pub const text_cfg = gx.TextCfg{
 	color:          gg.Color{17, 17, 27, 255}
 	size:           16
@@ -52,7 +53,7 @@ pub mut:
 pub interface Blocks {
 	id      int
 	variant int
-	show(ctx gg.Context)
+	show(ctx gg.Context, input_id int, input_nb int, input_txt_nb int)
 	is_clicked(x int, y int) bool
 	snap_i_is_body(snap_i int) bool
 mut:

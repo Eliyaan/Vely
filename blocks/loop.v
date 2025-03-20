@@ -34,7 +34,7 @@ pub fn (l Loop) snap_i_is_body(snap_i int) bool {
 	return !(snap_i == 1)
 }
 
-pub fn (loop Loop) show(ctx gg.Context) {
+pub fn (loop Loop) show(ctx gg.Context, input_id int, input_nb int, input_txt_nb int) {
 	mut tmp_text_size := 0
 	for txt in loop.text[0] {
 		tmp_text_size += txt.text.len + 1 // 1 is for the space between texts
@@ -62,14 +62,19 @@ pub fn (loop Loop) show(ctx gg.Context) {
 		attach_w / 2, blocks_h, loop_color)
 
 	mut decal := 0
-	for txt in loop.text[0] {
+	for nb_txt, txt in loop.text[0] {
 		cfg := match txt {
 			InputT { input_cfg }
 			else { text_cfg }
 		}
 		y_txt := loop.y + blocks_h / 2
 		if txt is InputT {
-			ctx.draw_rect_filled(loop.x + attach_w / 2 + decal - input_margin, y_txt - cfg.size / 2, txt.text.len * text_size + input_margin * 2, cfg.size, input_color)
+			color := if input_id == loop.id && input_nb == 0 && input_txt_nb == nb_txt {
+				input_selected_color
+			} else {
+				input_color
+			}
+			ctx.draw_rect_filled(loop.x + attach_w / 2 + decal - input_margin, y_txt - cfg.size / 2, txt.text.len * text_size + input_margin * 2, cfg.size, color)
 		}
 		ctx.draw_text(loop.x + attach_w / 2 + decal, y_txt, txt.text,
 			cfg)

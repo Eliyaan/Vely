@@ -31,7 +31,7 @@ pub fn (f Function) snap_i_is_body(snap_i int) bool {
 	return true
 }
 
-pub fn (func Function) show(ctx gg.Context) {
+pub fn (func Function) show(ctx gg.Context, input_id int, input_nb int, input_txt_nb int) {
 	mut tmp_text_size := 0
 	for txt in func.text[0] {
 		tmp_text_size += txt.text.len + 1 // 1 is for the space between texts
@@ -51,14 +51,19 @@ pub fn (func Function) show(ctx gg.Context) {
 	ctx.draw_rect_filled(func.x + attach_w + attach_w + attach_w, func.y, end_block_w + size_txt +
 		attach_w / 2, blocks_h, func_color)
 	mut decal := 0
-	for txt in func.text[0] {
+	for nb_txt, txt in func.text[0] {
 		cfg := match txt {
 			InputT { input_cfg }
 			else { text_cfg }
 		}
 		y := func.y + blocks_h / 2
 		if txt is InputT {
-			ctx.draw_rect_filled(func.x + attach_w / 2 + decal - input_margin, y - cfg.size / 2, txt.text.len * text_size + input_margin * 2, cfg.size, input_color)
+			color := if input_id == func.id && input_nb == 0 && input_txt_nb == nb_txt {
+				input_selected_color
+			} else {
+				input_color
+			}
+			ctx.draw_rect_filled(func.x + attach_w / 2 + decal - input_margin, y - cfg.size / 2, txt.text.len * text_size + input_margin * 2, cfg.size, color)
 		}
 		ctx.draw_text(func.x + attach_w / 2 + decal, y, txt.text, cfg)
 		decal += (txt.text.len + 1) * text_size
