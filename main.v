@@ -11,7 +11,6 @@ import time
 // TODO: text cursor & indicator of selected input box
 // ?TODO: temporary change of the children size of the snapped against block (like scratch does)
 // TODO: different block text modes (pseudocode and V's syntax)
-// TODO: colorschemes, font size
 
 const menu_width = 365
 const win_width = 1300
@@ -130,6 +129,28 @@ mut:
 	p_output             string
 	console_scroll       int
 	win_size             gg.Size
+	palette blocks.ColorPalette = Palette{}
+}
+
+struct Palette {
+mut:
+	input_color gg.Color = gg.Color{235, 244, 254, 255}
+	input_selected_color gg.Color = gg.Color{157, 240, 255, 255}
+	con_color gg.Color = gg.Color{249, 226, 175, 255}
+	loop_color gg.Color = gg.Color{166, 227, 161, 255}
+	io_color gg.Color = gg.Color{250, 179, 135, 255} // mocha peach
+	in_color gg.Color = gg.Color{243, 139, 168, 255} // mocha red
+	func_color gg.Color = gg.Color{245, 194, 231, 255} // mocha pink
+	text_cfg gx.TextCfg = gx.TextCfg{
+		color:          gg.Color{17, 17, 27, 255}
+		size:           16
+		vertical_align: .middle
+	}
+	input_cfg gx.TextCfg = gx.TextCfg{
+		color:          gg.Color{30, 30, 46, 255}
+		size:           16
+		vertical_align: .middle
+	}
 }
 
 enum Vari { // Variants
@@ -249,7 +270,7 @@ fn on_frame(mut app App) {
 	app.show_blocks()
 	app.show_blocks_menu()
 	if app.clicked_block != -1 {
-		app.blocks[blocks.find_index(app.clicked_block, app)].show(app.ctx, app.input_id, app.input_nb, app.input_txt_nb)
+		app.blocks[blocks.find_index(app.clicked_block, app)].show(app)
 	}
 	app.show_console()
 	app.ctx.end()
@@ -260,7 +281,7 @@ fn on_frame(mut app App) {
 fn (mut app App) show_blocks() {
 	for i in app.draw_order {
 		if i != app.clicked_block {
-			app.blocks[blocks.find_index(i, app)].show(app.ctx, app.input_id, app.input_nb, app.input_txt_nb)
+			app.blocks[blocks.find_index(i, app)].show(app)
 		}
 	}
 }
@@ -736,14 +757,11 @@ fn (mut app App) handle_click_block_element(elem blocks.Blocks, x int, y int) bo
 	mut decal_y := blocks.blocks_h
 	for nb, txts in elem.text {
 		mut decal_x := blocks.attach_w / 2
-		dump(x)
-		dump(elem.x + decal_x - blocks.input_margin)
 		if x >= elem.x + decal_x - blocks.input_margin {
 			for nb_txt, txt in txts {
 				match txt {
 					blocks.InputT {
 						decal_x += txt.text.len * blocks.text_size
-						dump(decal_x + elem.x + blocks.input_margin)
 						x_smaller_end_txt := x <= decal_x + elem.x + blocks.input_margin
 						// TODO: take into account text size
 						y_smaller_text_bot := y <= decal_y + elem.y
@@ -758,7 +776,6 @@ fn (mut app App) handle_click_block_element(elem blocks.Blocks, x int, y int) bo
 					}
 					else { // clicked on not clickable elem
 						decal_x += (txt.text.len + 1) * blocks.text_size
-						dump(decal_x + elem.x + blocks.input_margin)
 						x_smaller_end_txt := x <= decal_x + elem.x - blocks.input_margin // - if before an InputT
 						// TODO: take into account text size
 						y_smaller_text_bot := y <= decal_y + elem.y
@@ -959,33 +976,33 @@ fn (mut app App) snap_update_id_y(id int, mut other blocks.Blocks, snap_attach_i
 
 fn (app App) show_blocks_menu() {
 	app.ctx.draw_rect_filled(0, 0, menu_width, 2000, menu_color)
-	app.ctx.draw_square_filled(0, 0, 20, blocks.func_color)
-	app.ctx.draw_square_filled(0, 20, 20, blocks.con_color)
-	app.ctx.draw_square_filled(0, 40, 20, blocks.io_color)
-	app.ctx.draw_square_filled(0, 60, 20, blocks.in_color)
-	app.ctx.draw_square_filled(0, 80, 20, blocks.loop_color)
+	app.ctx.draw_square_filled(0, 0, 20, app.palette.func_color)
+	app.ctx.draw_square_filled(0, 20, 20, app.palette.con_color)
+	app.ctx.draw_square_filled(0, 40, 20, app.palette.io_color)
+	app.ctx.draw_square_filled(0, 60, 20, app.palette.in_color)
+	app.ctx.draw_square_filled(0, 80, 20, app.palette.loop_color)
 	match app.menu_mode {
 		.function {
-			fn_declare.show(app.ctx, app.input_id, app.input_nb, app.input_txt_nb)
+			fn_declare.show(app)
 		}
 		.condition {
-			condition.show(app.ctx, app.input_id, app.input_nb, app.input_txt_nb)
-			@match.show(app.ctx, app.input_id, app.input_nb, app.input_txt_nb)
+			condition.show(app)
+			@match.show(app)
 		}
 		.i_o {
-			declare.show(app.ctx, app.input_id, app.input_nb, app.input_txt_nb)
-			assign.show(app.ctx, app.input_id, app.input_nb, app.input_txt_nb)
-			println.show(app.ctx, app.input_id, app.input_nb, app.input_txt_nb)
-			call.show(app.ctx, app.input_id, app.input_nb, app.input_txt_nb)
+			declare.show(app)
+			assign.show(app)
+			println.show(app)
+			call.show(app)
 		}
 		.input {
-			@return.show(app.ctx, app.input_id, app.input_nb, app.input_txt_nb)
-			panic.show(app.ctx, app.input_id, app.input_nb, app.input_txt_nb)
+			@return.show(app)
+			panic.show(app)
 		}
 		.loop {
-			for_range.show(app.ctx, app.input_id, app.input_nb, app.input_txt_nb)
-			for_c.show(app.ctx, app.input_id, app.input_nb, app.input_txt_nb)
-			for_bool.show(app.ctx, app.input_id, app.input_nb, app.input_txt_nb)
+			for_range.show(app)
+			for_c.show(app)
+			for_bool.show(app)
 		}
 	}
 }
