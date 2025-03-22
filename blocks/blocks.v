@@ -18,7 +18,6 @@ pub struct Params {
 
 // BLOCKS
 
-pub const text_size = 8
 const snap_dist = 300
 pub const attach_decal_y = 5
 pub const attach_w = 14
@@ -29,25 +28,27 @@ pub const font_path = os.resource_abs_path('0xProtoNerdFontMono-Regular.ttf')
 
 pub interface App {
 mut:
-	blocks []Blocks
-	palette ColorPalette
-	ctx &gg.Context
-	input_id int
-	input_nb int
-	input_txt_nb int
+	blocks            []Blocks
+	palette           ColorPalette
+	ctx               &gg.Context
+	input_id          int
+	input_nb          int
+	input_txt_nb      int
+	input_char_offset int
 }
 
 pub interface ColorPalette {
 mut:
-	input_color gg.Color
+	input_color          gg.Color
 	input_selected_color gg.Color
-	con_color gg.Color
-	loop_color gg.Color
-	io_color gg.Color
-	in_color gg.Color
-	func_color gg.Color
-	text_cfg gx.TextCfg 
-	input_cfg gx.TextCfg 
+	con_color            gg.Color
+	loop_color           gg.Color
+	io_color             gg.Color
+	in_color             gg.Color
+	func_color           gg.Color
+	cursor_color         gg.Color
+	text_cfg             gx.TextCfg
+	input_cfg            gx.TextCfg
 }
 
 pub interface Text {
@@ -74,7 +75,7 @@ pub interface Blocks {
 	id      int
 	variant int
 	show(app App)
-	is_clicked(x int, y int) bool
+	is_clicked(app App, x int, y int) bool
 	snap_i_is_body(snap_i int) bool
 mut:
 	x             int
@@ -197,6 +198,11 @@ pub fn find_index(id int, app App) int {
 	panic('Did not find id ${id}')
 }
 
+pub fn (app App) draw_text_cursor(text_x int, text_y int) {
+	x := text_x + app.input_char_offset * app.palette.input_cfg.size / 2
+	app.ctx.draw_line(x, text_y - app.palette.input_cfg.size / 2 + 1, x, text_y +
+		app.palette.input_cfg.size / 2 - 1, app.palette.cursor_color)
+}
 
 // CONDITIONS
 
@@ -238,7 +244,8 @@ pub fn (con Condition) show(app App) {
 	for txt in con.text[0] {
 		tmp_text_size += txt.text.len + 1 // 1 is for the space between texts
 	}
-	size_txt := int(f32(tmp_text_size) * text_size) - (attach_w + attach_w + attach_w + end_block_w)
+	size_txt := int(f32(tmp_text_size) * app.palette.text_cfg.size / 2) - (attach_w + attach_w +
+		attach_w + end_block_w)
 	// Attach up
 	app.ctx.draw_rect_filled(con.x + attach_w, (con.y + attach_decal_y), attach_w, blocks_h - attach_decal_y,
 		app.palette.con_color)
@@ -256,24 +263,26 @@ pub fn (con Condition) show(app App) {
 		for txt in con.text[nb + 1] {
 			tmp_text_size_in += txt.text.len + 1 // 1 is for the space between texts
 		}
-		size_txt_in := int(f32(tmp_text_size_in) * text_size) - (attach_w * 2 + end_block_w)
+		size_txt_in := int(f32(tmp_text_size_in) * app.palette.text_cfg.size / 2) - (attach_w * 2 +
+			end_block_w)
 		y := con.y + expand_h
 		pos << y
 		expand_h += size_px + blocks_h + 2 * attach_decal_y
 		// Start
 		app.ctx.draw_rect_filled(con.x + attach_w, y, attach_w, blocks_h, app.palette.con_color)
 		// Attach down
-		app.ctx.draw_rect_filled(con.x + attach_w + attach_w, y, attach_w, (blocks_h + attach_decal_y),
-			app.palette.con_color)
+		app.ctx.draw_rect_filled(con.x + attach_w + attach_w, y, attach_w, (blocks_h +
+			attach_decal_y), app.palette.con_color)
 		// END
-		app.ctx.draw_rect_filled(con.x + attach_w + attach_w + attach_w, y, end_block_w + size_txt_in +
-			attach_w / 2, blocks_h, app.palette.con_color)
+		app.ctx.draw_rect_filled(con.x + attach_w + attach_w + attach_w, y, end_block_w +
+			size_txt_in + attach_w / 2, blocks_h, app.palette.con_color)
 	}
 	// End for end of the con
 	app.ctx.draw_rect_filled(con.x, con.y, attach_w, expand_h + blocks_h, app.palette.con_color)
 	y := con.y + expand_h
 	// Attach down
-	app.ctx.draw_rect_filled(con.x + attach_w, y, attach_w, (blocks_h + attach_decal_y), app.palette.con_color)
+	app.ctx.draw_rect_filled(con.x + attach_w, y, attach_w, (blocks_h + attach_decal_y),
+		app.palette.con_color)
 	app.ctx.draw_rect_filled(con.x + attach_w + attach_w, y, attach_w, blocks_h, app.palette.con_color)
 	// END
 	mut decal := 0
@@ -288,15 +297,18 @@ pub fn (con Condition) show(app App) {
 			}
 			y_txt := y_pos + blocks_h / 2
 			if txt is InputT {
-				color := if app.input_id == con.id && app.input_nb == nb + 1 && app.input_txt_nb == nb_txt {
+				color := if app.input_id == con.id && app.input_nb == nb + 1
+					&& app.input_txt_nb == nb_txt {
 					app.palette.input_selected_color
 				} else {
 					app.palette.input_color
 				}
-				app.ctx.draw_rect_filled(con.x + attach_w / 2 + decal - input_margin, y_txt - cfg.size / 2, txt.text.len * text_size + input_margin * 2, cfg.size, color)
+				app.ctx.draw_rect_filled(con.x + attach_w / 2 + decal - input_margin,
+					y_txt - cfg.size / 2, txt.text.len * cfg.size / 2 + input_margin * 2,
+					cfg.size, color)
 			}
 			app.ctx.draw_text(con.x + attach_w / 2 + decal, y_txt, txt.text, cfg)
-			decal += (txt.text.len + 1) * text_size
+			decal += (txt.text.len + 1) * cfg.size / 2
 		}
 	}
 	decal = 0
@@ -312,21 +324,25 @@ pub fn (con Condition) show(app App) {
 			} else {
 				app.palette.input_color
 			}
-			app.ctx.draw_rect_filled(con.x + attach_w / 2 + decal - input_margin, y_txt - cfg.size / 2, txt.text.len * text_size + input_margin * 2, cfg.size, color)
+			app.ctx.draw_rect_filled(con.x + attach_w / 2 + decal - input_margin, y_txt - cfg.size / 2,
+				txt.text.len * cfg.size / 2 + input_margin * 2, cfg.size, color)
+			if app.input_id == con.id && app.input_nb == 0 && app.input_txt_nb == nb_txt {
+				app.draw_text_cursor(con.x + attach_w / 2 + decal, y_txt)
+			}
 		}
 		app.ctx.draw_text(con.x + attach_w / 2 + decal, y_txt, txt.text, cfg)
-		decal += (txt.text.len + 1) * text_size
+		decal += (txt.text.len + 1) * cfg.size / 2
 	}
 }
 
-pub fn (con Condition) is_clicked(x int, y int) bool {
+pub fn (con Condition) is_clicked(app App, x int, y int) bool {
 	if x > con.x && y > con.y {
 		mut tmp_text_size := 0
 		for txt in con.text[0] {
 			tmp_text_size += txt.text.len + 1 // 1 is for the space between texts
 		}
-		size_txt := int(f32(tmp_text_size) * text_size) - (attach_w + attach_w + attach_w +
-			end_block_w)
+		size_txt := int(f32(tmp_text_size) * app.palette.text_cfg.size / 2) - (attach_w + attach_w +
+			attach_w + end_block_w)
 		if x < con.x + attach_w * 2 + attach_w + end_block_w + size_txt + attach_w / 2
 			&& y < con.y + blocks_h {
 			return true
@@ -337,7 +353,8 @@ pub fn (con Condition) is_clicked(x int, y int) bool {
 				for txt in con.text[nb + 1] {
 					tmp_text_size_in += txt.text.len + 1 // 1 is for the space between texts
 				}
-				size_txt_in := int(f32(tmp_text_size_in) * text_size) - (attach_w * 2 + end_block_w)
+				size_txt_in := int(f32(tmp_text_size_in) * app.palette.text_cfg.size / 2) - (
+					attach_w * 2 + end_block_w)
 				if x > con.x + attach_w && y > con.y + expand_h {
 					if x < con.x + attach_w + attach_w + attach_w + end_block_w + size_txt_in + attach_w / 2
 						&& y < con.y + expand_h + blocks_h {
@@ -360,7 +377,7 @@ pub fn (con Condition) is_clicked(x int, y int) bool {
 	return false
 }
 
-// FUNCTIONS 
+// FUNCTIONS
 
 pub struct Function {
 pub:
@@ -394,7 +411,8 @@ pub fn (func Function) show(app App) {
 	for txt in func.text[0] {
 		tmp_text_size += txt.text.len + 1 // 1 is for the space between texts
 	}
-	size_txt := int(f32(tmp_text_size) * text_size) - (attach_w * 3 + end_block_w)
+	size_txt := int(f32(tmp_text_size) * app.palette.text_cfg.size / 2) - (attach_w * 3 +
+		end_block_w)
 	expand_h := func.size_in[0] + blocks_h + 2 * attach_decal_y
 	app.ctx.draw_rect_filled(func.x, func.y, attach_w, expand_h + blocks_h, app.palette.func_color)
 	// Start
@@ -403,11 +421,11 @@ pub fn (func Function) show(app App) {
 	app.ctx.draw_rect_filled(func.x + attach_w, (func.y + expand_h), end_block_w + attach_w * 2 +
 		size_txt + attach_w / 2, blocks_h, app.palette.func_color)
 	// Attach
-	app.ctx.draw_rect_filled(func.x + attach_w + attach_w, func.y, attach_w, (blocks_h + attach_decal_y),
-		app.palette.func_color)
+	app.ctx.draw_rect_filled(func.x + attach_w + attach_w, func.y, attach_w, (blocks_h +
+		attach_decal_y), app.palette.func_color)
 	// END
-	app.ctx.draw_rect_filled(func.x + attach_w + attach_w + attach_w, func.y, end_block_w + size_txt +
-		attach_w / 2, blocks_h, app.palette.func_color)
+	app.ctx.draw_rect_filled(func.x + attach_w + attach_w + attach_w, func.y, end_block_w +
+		size_txt + attach_w / 2, blocks_h, app.palette.func_color)
 	mut decal := 0
 	for nb_txt, txt in func.text[0] {
 		cfg := match txt {
@@ -421,20 +439,25 @@ pub fn (func Function) show(app App) {
 			} else {
 				app.palette.input_color
 			}
-			app.ctx.draw_rect_filled(func.x + attach_w / 2 + decal - input_margin, y - cfg.size / 2, txt.text.len * text_size + input_margin * 2, cfg.size, color)
+			app.ctx.draw_rect_filled(func.x + attach_w / 2 + decal - input_margin, y - cfg.size / 2,
+				txt.text.len * cfg.size / 2 + input_margin * 2, cfg.size, color)
+			if app.input_id == func.id && app.input_nb == 0 && app.input_txt_nb == nb_txt {
+				app.draw_text_cursor(func.x + attach_w / 2 + decal, y)
+			}
 		}
 		app.ctx.draw_text(func.x + attach_w / 2 + decal, y, txt.text, cfg)
-		decal += (txt.text.len + 1) * text_size
+		decal += (txt.text.len + 1) * cfg.size / 2
 	}
 }
 
-pub fn (func Function) is_clicked(x int, y int) bool {
+pub fn (func Function) is_clicked(app App, x int, y int) bool {
 	if x > func.x && y > func.y {
 		mut tmp_text_size := 0
 		for txt in func.text[0] {
 			tmp_text_size += txt.text.len + 1 // 1 is for the space between texts
 		}
-		size_txt := int(f32(tmp_text_size) * text_size) - (attach_w * 3 + end_block_w)
+		size_txt := int(f32(tmp_text_size) * app.palette.text_cfg.size / 2) - (attach_w * 3 +
+			end_block_w)
 		expand_h := func.size_in[0] + blocks_h + 2 * attach_decal_y
 		if x < func.x + attach_w + attach_w + attach_w + end_block_w + size_txt + attach_w / 2
 			&& y < func.y + blocks_h {
@@ -481,7 +504,8 @@ pub fn (input Input) show(app App) {
 	for txt in input.text[0] {
 		tmp_text_size += txt.text.len + 1 // 1 is for the space between texts
 	}
-	size_txt := int(f32(tmp_text_size) * text_size) - (end_block_w + attach_w + attach_w)
+	size_txt := int(f32(tmp_text_size) * app.palette.text_cfg.size / 2) - (end_block_w + attach_w +
+		attach_w)
 	app.ctx.draw_rect_filled(input.x, input.y, attach_w, blocks_h, app.palette.in_color)
 	app.ctx.draw_rect_filled(input.x + attach_w, input.y + attach_decal_y, attach_w, blocks_h - attach_decal_y,
 		app.palette.in_color)
@@ -500,20 +524,25 @@ pub fn (input Input) show(app App) {
 			} else {
 				app.palette.input_color
 			}
-			app.ctx.draw_rect_filled(input.x + attach_w / 2 + decal - input_margin, y - cfg.size / 2, txt.text.len * text_size + input_margin * 2, cfg.size, color)
+			app.ctx.draw_rect_filled(input.x + attach_w / 2 + decal - input_margin, y - cfg.size / 2,
+				txt.text.len * cfg.size / 2 + input_margin * 2, cfg.size, color)
+			if app.input_id == input.id && app.input_nb == 0 && app.input_txt_nb == nb_txt {
+				app.draw_text_cursor(input.x + attach_w / 2 + decal, y)
+			}
 		}
 		app.ctx.draw_text(input.x + attach_w / 2 + decal, y, txt.text, cfg)
-		decal += (txt.text.len + 1) * text_size
+		decal += (txt.text.len + 1) * cfg.size / 2
 	}
 }
 
-pub fn (input Input) is_clicked(x int, y int) bool {
+pub fn (input Input) is_clicked(app App, x int, y int) bool {
 	if x > input.x && y > input.y {
 		mut tmp_text_size := 0
 		for txt in input.text[0] {
 			tmp_text_size += txt.text.len + 1 // 1 is for the space between texts
 		}
-		size_txt := int(f32(tmp_text_size) * text_size) - (end_block_w + attach_w + attach_w)
+		size_txt := int(f32(tmp_text_size) * app.palette.text_cfg.size / 2) - (end_block_w +
+			attach_w + attach_w)
 		return x < input.x + attach_w + attach_w + end_block_w + size_txt + attach_w / 2
 			&& y < input.y + blocks_h
 	}
@@ -552,10 +581,11 @@ pub fn (in_out InputOutput) show(app App) {
 	for txt in in_out.text[0] {
 		tmp_text_size += txt.text.len + 1 // 1 is for the space between texts
 	}
-	size_txt := int(f32(tmp_text_size) * text_size) - (attach_w + attach_w + end_block_w)
+	size_txt := int(f32(tmp_text_size) * app.palette.text_cfg.size / 2) - (attach_w + attach_w +
+		end_block_w)
 	app.ctx.draw_rect_filled(in_out.x, in_out.y, attach_w, blocks_h, app.palette.io_color)
-	app.ctx.draw_rect_filled(in_out.x + attach_w, in_out.y + attach_decal_y, attach_w, blocks_h,
-		app.palette.io_color)
+	app.ctx.draw_rect_filled(in_out.x + attach_w, in_out.y + attach_decal_y, attach_w,
+		blocks_h, app.palette.io_color)
 	app.ctx.draw_rect_filled(in_out.x + (attach_w + attach_w), in_out.y, end_block_w + size_txt +
 		attach_w / 2, blocks_h, app.palette.io_color)
 	mut decal := 0
@@ -571,20 +601,25 @@ pub fn (in_out InputOutput) show(app App) {
 			} else {
 				app.palette.input_color
 			}
-			app.ctx.draw_rect_filled(in_out.x + attach_w / 2 + decal - input_margin, y - cfg.size / 2, txt.text.len * text_size + input_margin * 2, cfg.size, color)
+			app.ctx.draw_rect_filled(in_out.x + attach_w / 2 + decal - input_margin, y - cfg.size / 2,
+				txt.text.len * cfg.size / 2 + input_margin * 2, cfg.size, color)
+			if app.input_id == in_out.id && app.input_nb == 0 && app.input_txt_nb == nb_txt {
+				app.draw_text_cursor(in_out.x + attach_w / 2 + decal, y)
+			}
 		}
 		app.ctx.draw_text(in_out.x + attach_w / 2 + decal, y, txt.text, cfg)
-		decal += (txt.text.len + 1) * text_size
+		decal += (txt.text.len + 1) * cfg.size / 2
 	}
 }
 
-pub fn (in_out InputOutput) is_clicked(x int, y int) bool {
+pub fn (in_out InputOutput) is_clicked(app App, x int, y int) bool {
 	if x > in_out.x && y > in_out.y {
 		mut tmp_text_size := 0
 		for txt in in_out.text[0] {
 			tmp_text_size += txt.text.len + 1 // 1 is for the space between texts
 		}
-		size_txt := int(f32(tmp_text_size) * text_size) - (attach_w + attach_w + end_block_w)
+		size_txt := int(f32(tmp_text_size) * app.palette.text_cfg.size / 2) - (attach_w + attach_w +
+			end_block_w)
 		return x < in_out.x + (attach_w + attach_w) + end_block_w + size_txt + attach_w / 2
 			&& y < in_out.y + blocks_h
 	}
@@ -628,7 +663,8 @@ pub fn (loop Loop) show(app App) {
 	for txt in loop.text[0] {
 		tmp_text_size += txt.text.len + 1 // 1 is for the space between texts
 	}
-	size_txt := int(f32(tmp_text_size) * text_size) - (end_block_w + attach_w + attach_w + attach_w)
+	size_txt := int(f32(tmp_text_size) * app.palette.text_cfg.size / 2) - (end_block_w + attach_w +
+		attach_w + attach_w)
 
 	expand_h := loop.size_in[0] + blocks_h + 2 * attach_decal_y
 	app.ctx.draw_rect_filled(loop.x, loop.y, attach_w, expand_h + blocks_h, app.palette.loop_color)
@@ -637,16 +673,17 @@ pub fn (loop Loop) show(app App) {
 	// Attach extern
 	app.ctx.draw_rect_filled(loop.x + attach_w, loop.y + attach_decal_y, attach_w, blocks_h - attach_decal_y,
 		app.palette.loop_color)
-	app.ctx.draw_rect_filled(loop.x + attach_w, y, attach_w, blocks_h + attach_decal_y, app.palette.loop_color)
+	app.ctx.draw_rect_filled(loop.x + attach_w, y, attach_w, blocks_h + attach_decal_y,
+		app.palette.loop_color)
 
 	// Attach intern
-	app.ctx.draw_rect_filled(loop.x + attach_w + attach_w, loop.y, attach_w, blocks_h + attach_decal_y,
-		app.palette.loop_color)
+	app.ctx.draw_rect_filled(loop.x + attach_w + attach_w, loop.y, attach_w, blocks_h +
+		attach_decal_y, app.palette.loop_color)
 	app.ctx.draw_rect_filled(loop.x + attach_w + attach_w, y, attach_w, blocks_h, app.palette.loop_color)
 
 	// END
-	app.ctx.draw_rect_filled(loop.x + attach_w + attach_w + attach_w, loop.y, end_block_w + size_txt +
-		attach_w / 2, blocks_h, app.palette.loop_color)
+	app.ctx.draw_rect_filled(loop.x + attach_w + attach_w + attach_w, loop.y, end_block_w +
+		size_txt + attach_w / 2, blocks_h, app.palette.loop_color)
 	app.ctx.draw_rect_filled(loop.x + attach_w + attach_w + attach_w, y, end_block_w + size_txt +
 		attach_w / 2, blocks_h, app.palette.loop_color)
 
@@ -663,22 +700,25 @@ pub fn (loop Loop) show(app App) {
 			} else {
 				app.palette.input_color
 			}
-			app.ctx.draw_rect_filled(loop.x + attach_w / 2 + decal - input_margin, y_txt - cfg.size / 2, txt.text.len * text_size + input_margin * 2, cfg.size, color)
+			app.ctx.draw_rect_filled(loop.x + attach_w / 2 + decal - input_margin, y_txt - cfg.size / 2,
+				txt.text.len * cfg.size / 2 + input_margin * 2, cfg.size, color)
+			if app.input_id == loop.id && app.input_nb == 0 && app.input_txt_nb == nb_txt {
+				app.draw_text_cursor(loop.x + attach_w / 2 + decal, y_txt)
+			}
 		}
-		app.ctx.draw_text(loop.x + attach_w / 2 + decal, y_txt, txt.text,
-			cfg)
-		decal += (txt.text.len + 1) * text_size
+		app.ctx.draw_text(loop.x + attach_w / 2 + decal, y_txt, txt.text, cfg)
+		decal += (txt.text.len + 1) * cfg.size / 2
 	}
 }
 
-pub fn (loop Loop) is_clicked(x int, y int) bool {
+pub fn (loop Loop) is_clicked(app App, x int, y int) bool {
 	if x > loop.x && y > loop.y {
 		mut tmp_text_size := 0
 		for txt in loop.text[0] {
 			tmp_text_size += txt.text.len + 1 // 1 is for the space between texts
 		}
-		size_txt := int(f32(tmp_text_size) * text_size) - (end_block_w + attach_w + attach_w +
-			attach_w)
+		size_txt := int(f32(tmp_text_size) * app.palette.text_cfg.size / 2) - (end_block_w +
+			attach_w + attach_w + attach_w)
 		expand_h := loop.size_in[0] + blocks_h + 2 * attach_decal_y
 		if x <= loop.x + attach_w + attach_w + attach_w + end_block_w + size_txt + attach_w / 2
 			&& y <= loop.y + blocks_h {
@@ -693,4 +733,3 @@ pub fn (loop Loop) is_clicked(x int, y int) bool {
 	}
 	return false
 }
-

@@ -8,7 +8,6 @@ import time
 
 // TODO: the (+) to be able to add args (ButtonT irrc)
 // TODO: terminal width changing
-// TODO: text cursor & indicator of selected input box
 // ?TODO: temporary change of the children size of the snapped against block (like scratch does)
 // TODO: different block text modes (pseudocode and V's syntax)
 
@@ -112,7 +111,7 @@ mut:
 	ctx                  &gg.Context = unsafe { nil }
 	square_size          int         = 10
 	blocks               []blocks.Blocks
-	draw_order	     []int
+	draw_order           []int
 	max_id               int
 	menu_mode            MenuMode
 	clicked_block        int = -1
@@ -123,32 +122,34 @@ mut:
 	input_id             int = -1
 	input_nb             int
 	input_txt_nb         int
+	input_char_offset    int // position of the text cursor
 	show_output          bool
 	program_running      bool
 	prog                 os.Process
 	p_output             string
 	console_scroll       int
 	win_size             gg.Size
-	palette blocks.ColorPalette = Palette{}
+	palette              blocks.ColorPalette = Palette{}
 }
 
 struct Palette {
 mut:
-	input_color gg.Color = gg.Color{235, 244, 254, 255}
-	input_selected_color gg.Color = gg.Color{157, 240, 255, 255}
-	con_color gg.Color = gg.Color{249, 226, 175, 255}
-	loop_color gg.Color = gg.Color{166, 227, 161, 255}
-	io_color gg.Color = gg.Color{250, 179, 135, 255} // mocha peach
-	in_color gg.Color = gg.Color{243, 139, 168, 255} // mocha red
-	func_color gg.Color = gg.Color{245, 194, 231, 255} // mocha pink
-	text_cfg gx.TextCfg = gx.TextCfg{
+	input_color          gg.Color   = gg.Color{235, 244, 254, 255}
+	input_selected_color gg.Color   = gg.Color{157, 240, 255, 255}
+	con_color            gg.Color   = gg.Color{249, 226, 175, 255}
+	loop_color           gg.Color   = gg.Color{166, 227, 161, 255}
+	io_color             gg.Color   = gg.Color{250, 179, 135, 255} // mocha peach
+	in_color             gg.Color   = gg.Color{243, 139, 168, 255} // mocha red
+	func_color           gg.Color   = gg.Color{245, 194, 231, 255} // mocha pink
+	cursor_color         gg.Color   = gg.Color{49, 50, 68, 255} // mocha surface 0
+	text_cfg             gx.TextCfg = gx.TextCfg{
 		color:          gg.Color{17, 17, 27, 255}
 		size:           16
 		vertical_align: .middle
 	}
-	input_cfg gx.TextCfg = gx.TextCfg{
+	input_cfg            gx.TextCfg = gx.TextCfg{
 		color:          gg.Color{30, 30, 46, 255}
-		size:           16
+		size:           16 // keep it the same as text_cfg
 		vertical_align: .middle
 	}
 }
@@ -203,7 +204,11 @@ fn on_event(e &gg.Event, mut app App) {
 		if app.input_txt_nb < 0 || app.input_txt_nb >= app.blocks[i].text[app.input_nb].len {
 			panic('app.input_txt_ not valid ${app.input_txt_nb} / ${app.blocks[i].text[app.input_nb].len}')
 		}
-		app.blocks[i].text[app.input_nb][app.input_txt_nb].text += u8(e.char_code).ascii_str()
+		app.blocks[i].text[app.input_nb][app.input_txt_nb].text =
+			app.blocks[i].text[app.input_nb][app.input_txt_nb].text[0..app.input_char_offset] +
+			u8(e.char_code).ascii_str() +
+			app.blocks[i].text[app.input_nb][app.input_txt_nb].text[app.input_char_offset..]
+		app.input_char_offset += 1
 	}
 	app.win_size = gg.window_size()
 	match e.typ {
@@ -215,7 +220,12 @@ fn on_event(e &gg.Event, mut app App) {
 				.enter {
 					app.input_id = -99
 				}
-				.backspace {
+				.left {
+					if app.input_char_offset > 0 {
+						app.input_char_offset -= 1
+					}
+				}
+				.right {
 					if app.input_id >= 0 {
 						i := blocks.find_index(app.input_id, app)
 						if app.input_nb < 0 || app.input_nb >= app.blocks[i].text.len {
@@ -223,9 +233,54 @@ fn on_event(e &gg.Event, mut app App) {
 						}
 						if app.input_txt_nb < 0
 							|| app.input_txt_nb >= app.blocks[i].text[app.input_nb].len {
-							panic('app.input_txt_ not valid ${app.input_txt_nb} / ${app.blocks[i].text[app.input_nb].len}')
+							panic('app.input_txt_nb not valid ${app.input_txt_nb} / ${app.blocks[i].text[app.input_nb].len}')
 						}
-						app.blocks[i].text[app.input_nb][app.input_txt_nb].text = app.blocks[i].text[app.input_nb][app.input_txt_nb].text#[..-1]
+						if app.input_char_offset > app.blocks[i].text[app.input_nb][app.input_txt_nb].text.len {
+							panic('app.input_char_offset not valid ${app.input_char_offset} / ${app.blocks[i].text[app.input_nb][app.input_txt_nb].text}')
+						}
+						if app.input_char_offset <= app.blocks[i].text[app.input_nb][app.input_txt_nb].text.len - 1 {
+							app.input_char_offset += 1
+						}
+					}
+				}
+				.delete {
+					if app.input_id >= 0 {
+						i := blocks.find_index(app.input_id, app)
+						if app.input_nb < 0 || app.input_nb >= app.blocks[i].text.len {
+							panic('app.input_nb not valid ${app.input_nb} / ${app.blocks[i].text.len}')
+						}
+						if app.input_txt_nb < 0
+							|| app.input_txt_nb >= app.blocks[i].text[app.input_nb].len {
+							panic('app.input_txt_nb not valid ${app.input_txt_nb} / ${app.blocks[i].text[app.input_nb].len}')
+						}
+						if app.input_char_offset > app.blocks[i].text[app.input_nb][app.input_txt_nb].text.len {
+							panic('app.input_char_offset not valid ${app.input_char_offset} / ${app.blocks[i].text[app.input_nb][app.input_txt_nb].text}')
+						}
+						if app.input_char_offset <= app.blocks[i].text[app.input_nb][app.input_txt_nb].text.len - 1 {
+							app.blocks[i].text[app.input_nb][app.input_txt_nb].text =
+								app.blocks[i].text[app.input_nb][app.input_txt_nb].text[0..app.input_char_offset] +
+								app.blocks[i].text[app.input_nb][app.input_txt_nb].text[app.input_char_offset +
+								1..]
+						}
+					}
+				}
+				.backspace {
+					if app.input_id >= 0 && app.input_char_offset > 0 {
+						i := blocks.find_index(app.input_id, app)
+						if app.input_nb < 0 || app.input_nb >= app.blocks[i].text.len {
+							panic('app.input_nb not valid ${app.input_nb} / ${app.blocks[i].text.len}')
+						}
+						if app.input_txt_nb < 0
+							|| app.input_txt_nb >= app.blocks[i].text[app.input_nb].len {
+							panic('app.input_txt_nb not valid ${app.input_txt_nb} / ${app.blocks[i].text[app.input_nb].len}')
+						}
+						if app.input_char_offset > app.blocks[i].text[app.input_nb][app.input_txt_nb].text.len {
+							panic('app.input_char_offset not valid ${app.input_char_offset} / ${app.blocks[i].text[app.input_nb][app.input_txt_nb].text}')
+						}
+						app.blocks[i].text[app.input_nb][app.input_txt_nb].text =
+							app.blocks[i].text[app.input_nb][app.input_txt_nb].text[0..app.input_char_offset - 1] +
+							app.blocks[i].text[app.input_nb][app.input_txt_nb].text[app.input_char_offset..]
+						app.input_char_offset -= 1
 					}
 				}
 				else {}
@@ -739,7 +794,7 @@ fn process_id_to_txt(app App, id int) string {
 fn (mut app App) handle_blocks_click(x int, y int) {
 	for i := app.draw_order.len - 1; i >= 0; i-- {
 		elem := app.blocks[blocks.find_index(app.draw_order[i], app)]
-		if elem.is_clicked(x, y) {
+		if elem.is_clicked(app, x, y) {
 			if app.handle_click_block_element(elem, x, y) { // if click on elem of the block
 				break
 			} else { // then click is on the rest of the block
@@ -761,21 +816,23 @@ fn (mut app App) handle_click_block_element(elem blocks.Blocks, x int, y int) bo
 			for nb_txt, txt in txts {
 				match txt {
 					blocks.InputT {
-						decal_x += txt.text.len * blocks.text_size
+						old_decal := decal_x
+						decal_x += txt.text.len * app.palette.input_cfg.size / 2
 						x_smaller_end_txt := x <= decal_x + elem.x + blocks.input_margin
 						// TODO: take into account text size
 						y_smaller_text_bot := y <= decal_y + elem.y
 						y_greater_text_top := y >= decal_y - blocks.blocks_h + elem.y
-						decal_x += blocks.text_size
+						decal_x += app.palette.input_cfg.size / 2
 						if x_smaller_end_txt && y_smaller_text_bot && y_greater_text_top {
 							app.input_id = elem.id
 							app.input_nb = nb
 							app.input_txt_nb = nb_txt
+							app.input_char_offset = (x + app.palette.input_cfg.size/4 - (old_decal + elem.x)) / (app.palette.input_cfg.size / 2)
 							return true
 						}
 					}
 					else { // clicked on not clickable elem
-						decal_x += (txt.text.len + 1) * blocks.text_size
+						decal_x += (txt.text.len + 1) * app.palette.text_cfg.size / 2
 						x_smaller_end_txt := x <= decal_x + elem.x - blocks.input_margin // - if before an InputT
 						// TODO: take into account text size
 						y_smaller_text_bot := y <= decal_y + elem.y
@@ -785,7 +842,7 @@ fn (mut app App) handle_click_block_element(elem blocks.Blocks, x int, y int) bo
 						}
 					}
 				}
-				if !(txt is blocks.JustT) {
+				if txt !is blocks.JustT {
 				}
 			}
 		}
@@ -1027,7 +1084,7 @@ fn (mut app App) check_clicks_menu(x int, y int) !bool {
 		match app.menu_mode {
 			.function {
 				match true {
-					fn_declare.is_clicked(x, y) {
+					fn_declare.is_clicked(app, x, y) {
 						app.set_block_offset(x, y, fn_declare)
 						app.blocks << init_block(blocks.Function{id, int(Vari.function), x, y, [], -1, -1, [
 							-1,
@@ -1042,13 +1099,13 @@ fn (mut app App) check_clicks_menu(x int, y int) !bool {
 			}
 			.condition {
 				match true {
-					condition.is_clicked(x, y) {
+					condition.is_clicked(app, x, y) {
 						app.set_block_offset(x, y, condition)
 						app.blocks << init_block(blocks.Condition{id, int(Vari.condition), x, y, [], [], -1, -1, [
 							-1,
 						], [], empty_contenant_h, [0]})!
 					}
-					@match.is_clicked(x, y) {
+					@match.is_clicked(app, x, y) {
 						app.set_block_offset(x, y, @match)
 						app.blocks << init_block(blocks.Condition{id, int(Vari.@match), 30, 50, [], [], -1, -1, [
 							-1,
@@ -1065,19 +1122,19 @@ fn (mut app App) check_clicks_menu(x int, y int) !bool {
 			}
 			.i_o {
 				match true {
-					declare.is_clicked(x, y) {
+					declare.is_clicked(app, x, y) {
 						app.set_block_offset(x, y, declare)
 						app.blocks << init_block(blocks.InputOutput{id, int(Vari.declare), 30, 10, [], [], -1, -1, [], [], blocks.blocks_h, []})!
 					}
-					assign.is_clicked(x, y) {
+					assign.is_clicked(app, x, y) {
 						app.set_block_offset(x, y, assign)
 						app.blocks << init_block(blocks.InputOutput{id, int(Vari.assign), 30, 10, [], [], -1, -1, [], [], blocks.blocks_h, []})!
 					}
-					println.is_clicked(x, y) {
+					println.is_clicked(app, x, y) {
 						app.set_block_offset(x, y, println)
 						app.blocks << init_block(blocks.InputOutput{id, int(Vari.println), 30, 10, [], [], -1, -1, [], [], blocks.blocks_h, []})!
 					}
-					call.is_clicked(x, y) {
+					call.is_clicked(app, x, y) {
 						app.set_block_offset(x, y, call)
 						app.blocks << init_block(blocks.InputOutput{id, int(Vari.call), 30, 10, [], [], -1, -1, [], [], blocks.blocks_h, []})!
 					}
@@ -1088,11 +1145,11 @@ fn (mut app App) check_clicks_menu(x int, y int) !bool {
 			}
 			.input {
 				match true {
-					@return.is_clicked(x, y) {
+					@return.is_clicked(app, x, y) {
 						app.set_block_offset(x, y, @return)
 						app.blocks << init_block(blocks.Input{id, int(Vari.@return), 30, 10, [], -1, -1, [], [], [], blocks.blocks_h, []})!
 					}
-					panic.is_clicked(x, y) {
+					panic.is_clicked(app, x, y) {
 						app.set_block_offset(x, y, panic)
 						app.blocks << init_block(blocks.Input{id, int(Vari.panic), 30, 10, [], -1, -1, [], [], [], blocks.blocks_h, []})!
 					}
@@ -1103,7 +1160,7 @@ fn (mut app App) check_clicks_menu(x int, y int) !bool {
 			}
 			.loop {
 				match true {
-					for_range.is_clicked(x, y) {
+					for_range.is_clicked(app, x, y) {
 						app.set_block_offset(x, y, for_range)
 						app.blocks << init_block(blocks.Loop{id, int(Vari.for_range), x, y, [], [], -1, -1, [
 							-1,
@@ -1111,7 +1168,7 @@ fn (mut app App) check_clicks_menu(x int, y int) !bool {
 							0,
 						]})!
 					}
-					for_c.is_clicked(x, y) {
+					for_c.is_clicked(app, x, y) {
 						app.set_block_offset(x, y, for_c)
 						app.blocks << init_block(blocks.Loop{id, int(Vari.for_c), x, y, [], [], -1, -1, [
 							-1,
@@ -1119,7 +1176,7 @@ fn (mut app App) check_clicks_menu(x int, y int) !bool {
 							0,
 						]})!
 					}
-					for_bool.is_clicked(x, y) {
+					for_bool.is_clicked(app, x, y) {
 						app.set_block_offset(x, y, for_bool)
 						app.blocks << init_block(blocks.Loop{id, int(Vari.for_bool), x, y, [], [], -1, -1, [
 							-1,
