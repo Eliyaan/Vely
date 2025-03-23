@@ -9,7 +9,13 @@ import time
 // TODO: the (+) to be able to add args (ButtonT irrc)
 // TODO: terminal width changing
 // ?TODO: temporary change of the children size of the snapped against block (like scratch does)
-// TODO: different block text modes (pseudocode and V's syntax)
+// TODO: different block text modes (pseudocode and V's syntax) -> change way block inits are done
+// TODO: basic save system
+// TODO: projects -> a folder for each project, choose/create folder, keep all open project at starting
+// TODO: palette choice
+// TODO: insert block
+// TODO: rounded corners
+// TODO: outlines
 
 const menu_width = 365
 const win_width = 1300
@@ -110,9 +116,9 @@ struct App {
 mut:
 	ctx                  &gg.Context = unsafe { nil }
 	square_size          int         = 10
-	blocks               []blocks.Blocks
-	draw_order           []int
-	max_id               int
+	blocks               []blocks.Blocks // TODO: needs to be saved
+	draw_order           []int // TODO: needs to be saved
+	max_id               int // TODO: needs to be saved
 	menu_mode            MenuMode
 	clicked_block        int = -1
 	block_click_offset_x int
@@ -135,7 +141,7 @@ mut:
 struct Palette {
 mut:
 	input_color          gg.Color   = gg.Color{235, 244, 254, 255}
-	input_selected_color gg.Color   = gg.Color{157, 240, 255, 255}
+	input_selected_color gg.Color   = gg.Color{187, 240, 255, 255}
 	con_color            gg.Color   = gg.Color{249, 226, 175, 255}
 	loop_color           gg.Color   = gg.Color{166, 227, 161, 255}
 	io_color             gg.Color   = gg.Color{250, 179, 135, 255} // mocha peach
@@ -195,7 +201,7 @@ fn main() {
 }
 
 fn on_event(e &gg.Event, mut app App) {
-	if app.input_id != -1 && e.char_code != 0 && e.char_code < 128 {
+	if app.input_id >= 0 && e.char_code != 0 && e.char_code < 128 {
 		i := blocks.find_index(app.input_id, app)
 
 		if app.input_nb < 0 || app.input_nb >= app.blocks[i].text.len {
@@ -287,7 +293,7 @@ fn on_event(e &gg.Event, mut app App) {
 			}
 		}
 		.mouse_scroll {
-			app.console_scroll(int(e.scroll_y))
+			app.console_scroll(-int(e.scroll_y))
 		}
 		.mouse_down {
 			app.input_id = -99
@@ -308,6 +314,19 @@ fn on_event(e &gg.Event, mut app App) {
 					app.place_snap(int(e.mouse_x), int(e.mouse_y))
 				} else {
 					i := blocks.find_index(app.clicked_block, app)
+					// propagate pos to children		
+					mut child_in_ids := [app.blocks[i].output]
+					child_in_ids << app.blocks[i].inner
+					for child_in_ids.len > 0 {
+						id_child := child_in_ids.pop()
+						if id_child != -1 {
+							i_c := blocks.find_index(id_child, app)
+							child_in_ids << app.blocks[i_c].inner
+							child_in_ids << app.blocks[i_c].output
+							app.blocks.delete(i_c)
+							app.draw_order.delete(app.draw_order.index(id_child))
+						}
+					}
 					app.blocks.delete(i)
 					app.draw_order.delete(app.draw_order.index(app.clicked_block))
 				}
@@ -325,7 +344,19 @@ fn on_frame(mut app App) {
 	app.show_blocks()
 	app.show_blocks_menu()
 	if app.clicked_block != -1 {
-		app.blocks[blocks.find_index(app.clicked_block, app)].show(app)
+		i := blocks.find_index(app.clicked_block, app)
+		app.blocks[i].show(app)
+		mut child_in_ids := [app.blocks[i].output]
+		child_in_ids << app.blocks[i].inner
+		for child_in_ids.len > 0 {
+			id_child := child_in_ids.pop()
+			if id_child != -1 {
+				i_c := blocks.find_index(id_child, app)
+				child_in_ids << app.blocks[i_c].inner
+				child_in_ids << app.blocks[i_c].output
+				app.blocks[i_c].show(app)
+			}
+		}
 	}
 	app.show_console()
 	app.ctx.end()
@@ -478,7 +509,8 @@ fn init_block(b blocks.Blocks) !blocks.Blocks {
 			block.text = [
 				[blocks.Text(blocks.JustT{'fn'}), blocks.InputT{'name'},
 					blocks.JustT{'('}, blocks.ButtonT{'(+)'},
-					blocks.JustT{')'}, blocks.ButtonT{'(+)'}],
+					blocks.JustT{')'}, blocks.ButtonT{'(+) {'}],
+				[blocks.Text(blocks.JustT{'}'})]
 			]
 			block.attachs_rel_y = [blocks.blocks_h]
 		}
