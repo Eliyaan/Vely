@@ -1,7 +1,6 @@
 module blocks
 
 import gg
-import gx
 import os
 
 // PARAMS
@@ -47,8 +46,8 @@ mut:
 	in_color             gg.Color
 	func_color           gg.Color
 	cursor_color         gg.Color
-	text_cfg             gx.TextCfg
-	input_cfg            gx.TextCfg
+	text_cfg             gg.TextCfg
+	input_cfg            gg.TextCfg
 }
 
 pub interface Text {

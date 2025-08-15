@@ -2,7 +2,6 @@ module main
 
 import blocks
 import gg
-import gx
 import os
 import time
 
@@ -23,7 +22,7 @@ const win_height = 700
 const bg_color = gg.Color{166, 173, 200, 255}
 const menu_color = gg.Color{127, 132, 156, 255}
 const console_color = gg.Color{49, 50, 68, 255}
-const console_cfg = gx.TextCfg{
+const console_cfg = gg.TextCfg{
 	size:  16
 	color: gg.Color{205, 214, 244, 255}
 }
@@ -148,12 +147,12 @@ mut:
 	in_color             gg.Color   = gg.Color{243, 139, 168, 255} // mocha red
 	func_color           gg.Color   = gg.Color{245, 194, 231, 255} // mocha pink
 	cursor_color         gg.Color   = gg.Color{49, 50, 68, 255} // mocha surface 0
-	text_cfg             gx.TextCfg = gx.TextCfg{
+	text_cfg             gg.TextCfg = gg.TextCfg{
 		color:          gg.Color{17, 17, 27, 255}
 		size:           16
 		vertical_align: .middle
 	}
-	input_cfg            gx.TextCfg = gx.TextCfg{
+	input_cfg            gg.TextCfg = gg.TextCfg{
 		color:          gg.Color{30, 30, 46, 255}
 		size:           16 // keep it the same as text_cfg
 		vertical_align: .middle
